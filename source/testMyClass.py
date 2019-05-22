@@ -34,7 +34,7 @@ class MyClass(ObjectData):
 		#self.pos.x = Position()
 		self.posList = [Position(), Position()]
 		self.posTuple = (Position(), Position())
-		#self.posTuple2 = (self.posList, self.posTuple)
+		self.posTuple2 = (self.posList, self.posTuple)
 		self.posDict = {'pos1': Position(), 'pos2': Position()}
 		#self.posDict2 = {'pos1': self.posList, 'pos2': self.posTuple2}
 		#self.posList2 = [self.posTuple2, self.posDict]
@@ -104,13 +104,13 @@ inst2 = MyClass()
 print('\nInitialize Inst2')
 #pprint.pprint(inst2.GetAttrs())
 
-inst2.SetAttrs(json.loads(inst1Data)) 
+#inst2.SetAttrs(json.loads(inst1Data)) 
 #inst2.SetAttrs(inst1Data)
 #inst2.SetAttrs(json.loads(inst1Data), setProperty=False)
 
 print('\nSet Inst2')	
 print('Inst2 p:', inst2.p)
-pprint.pprint(inst2.GetAttrs())
+#pprint.pprint(inst2.GetAttrs())
 #pprint.pprint(inst2.posList)
 #pprint.pprint(inst2.posDict)
 '''

@@ -49,6 +49,7 @@ class ObjectData:
 					val = newVal				
 				
 				else:
+
 					val = self.GetAttrs(obj=val)
 				
 				v = {'value': val, 'type': typeName, 'set': True}
@@ -173,13 +174,16 @@ class ObjectData:
 				if listVal.get('value'):
 					
 					attr = type(listVal['type'], (), {})()
-					for key, val in listVal['value'].items():
+					try:
+						for key, val in listVal['value'].items():
 
-						if val['type'] in ('int', 'float', 'str', 'bool', 'NoneType'):
-							setattr(attr, key, val['value'])
-						else:
-							setattr(attr, key, self.makeNotBasicType(val))
-
+							if val['type'] in ('int', 'float', 'str', 'bool', 'NoneType'):
+								setattr(attr, key, val['value'])
+							else:
+								setattr(attr, key, self.makeNotBasicType(val))
+					except Exception as e:
+						print('error', attr)
+						print(e)
 					l.append(attr)
 
 				else:
@@ -309,7 +313,7 @@ class ObjectData:
 
 					setattr(obj, attrName, attrVal['value'])
 			else:
-				debug('SetAttrs Set:', attrName)
+				#debug('SetAttrs Set:', attrName)
 
 				attr = self.makeNotBasicType(attrVal)
 
