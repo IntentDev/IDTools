@@ -3,7 +3,7 @@ class ObjectData:
 	Inherit ObjectData in an extension or class
 	
 	Use GetAttrs() to return a JSON or TD storage serializable dict of all 
-	the attributes of the extension or class inheriting ObjectData. 
+	the attributes of the extension/class inheriting ObjectData. 
 	All attributes are converted to dicts with '_attr_val', '_attr_type' 
 	and '_attr_set' keys. Non-serializable attributes ie. instances
 	of non-base types (float, int, str, list etc...), lists, dicts or 
@@ -40,13 +40,20 @@ class ObjectData:
 	Should be able to work without inheritance but that has not been tested,
 	for now it is meant to be used as an inherited base class.
 
-	Use self.__filter_attr__ = (tuple of names(str) of attributes) that you 
+	Use self.__FILTER_GET_ATTR__ = (tuple of names(str) of attributes) that you 
 	do not want to be added to the attrsDict
 
+	Use self.__FILTER_SET_ATTR__ = (tuple of names(str) of attributes) that you 
+	do not want to be set in the object that could exist in the attrDict	
 	'''
 	def __init__(self):
 
-		self.__filter__ = ('__filter__')
+		self.__FILTER_GET__ = (	'__FILTER_GET__', '__FILTER_SET__',
+								'__FILTER_GET_ATTR__', '__FILTER_SET_ATTR__', 
+								'ownerComp')
+
+		self.__FILTER_SET__ = ()
+
 		pass
 
 	def GetAttrs(self, obj=None):
@@ -55,16 +62,23 @@ class ObjectData:
 			obj = self
 
 		# get instance attributes
-		attrs = {}
+		attrDict = {}
 		for attrName, attrVal in obj.__dict__.items():			
 			type_ = type(attrVal)
 			typeName = type_.__name__	
-			attrSet = True #attrVal.__class__.__module__ not in ('td', 'tdu')
-			createKey = (attrName[:13] != '_ObjectData__')
+			attrSet = True
 
-			if hasattr(obj, '__filter_attr__'):
-				createKey = (attrName not in obj.__filter_attr__  and 
-							attrName[:2] != '__')
+			createKey = (	attrName[:13] != '_ObjectData__' and	
+							attrName[:2] != '__' and
+							attrName != '__FILTER_GET__' and
+							attrName not in self.__FILTER_GET__
+						)	
+
+
+			if hasattr(obj, '__FILTER_GET_ATTR__'):
+				
+				createKey = (createKey and
+							attrName not in obj.__FILTER_GET_ATTR__)
 
 			if attrVal.__class__.__module__ not in ('td', 'tdu'):
 				if not self.isSerializable(attrVal):
@@ -73,8 +87,7 @@ class ObjectData:
 			elif hasattr(attrVal, 'OPType'):
 				attrVal = attrVal.path
 				typeName = 'OP'
-				attrSet = attrName not in ('ownerComp')
-
+				#attrSet = attrName not in ('ownerComp')
 
 			elif attrVal.__class__ == Par:
 				attrVal = self.makePar(attrVal)
@@ -82,7 +95,7 @@ class ObjectData:
 			else: createKey = False
 
 			if createKey:		
-				attrs[attrName] = {'_attr_val': attrVal, 
+				attrDict[attrName] = {'_attr_val': attrVal, 
 									'_attr_type': typeName, 
 									'_attr_set': attrSet}
 
@@ -131,18 +144,23 @@ class ObjectData:
 
 						else: createKey = False
 
-						if hasattr(obj, '__filter_attr__'):		
-							createKey = (createKey
-										and attrName not in obj.__filter_attr__
-										and attrName[:2] != '__')	
+						createKey = (	createKey and	
+										attrName[:2] != '__' and
+										attrName != '__FILTER_GET__' and
+										attrName not in self.__FILTER_GET__
+									)			
+
+						if hasattr(obj, '__FILTER_GET_ATTR__'):		
+							createKey = (createKey and
+										attrName not in obj.__FILTER_GET_ATTR__)	
 
 						if createKey:
 
-							attrs[attrName] = {'_attr_val': attrVal, 
+							attrDict[attrName] = {'_attr_val': attrVal, 
 											'_attr_type': typeName, 
 											'_attr_set': attrSet}
 
-		return attrs
+		return attrDict
 
 	def isSerializable(self, data):
 
@@ -263,20 +281,32 @@ class ObjectData:
 
 		return outputPar
 
-	def SetAttrs(self, objData, setProperty=True, obj=None):
+	def SetAttrs(self, attrDict, setProperty=True, obj=None):
 
 		if not obj:
 			obj = self
 
-		for attrName, attrVal in objData.items():
+		if hasattr(self, '__FILTER_SET_ATTR__'):
+			
+			self.__FILTER_SET__ += tuple(self.__FILTER_SET_ATTR__)
+			
+
+		for attrName, attrVal in attrDict.items():
 			if self.isBasicTypes(attrVal):
-				if attrVal['_attr_set']:
+				if attrVal['_attr_set'] and attrName not in self.__FILTER_SET__:
+					
+					if attrVal['_attr_type'] == 'tuple':
+						attrVal['_attr_val'] = tuple(attrVal['_attr_val'])
+					
 					setattr(obj, attrName, attrVal['_attr_val'])
 
 			else:
 				attr = self.makeNotBasicType(attrVal)
 
-				if attr != '__noSet__' and attrVal['_attr_set']:
+				if (attr != '__noSet__' and 
+					attrVal['_attr_set'] and 
+					attrName not in self.__FILTER_SET__):
+
 					setattr(obj, attrName, attr)
 	
 	def isBasicTypes(self, data):

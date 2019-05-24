@@ -29,9 +29,18 @@ class MyClass(ObjectData):
 
 	def __init__(self):
 		ObjectData.__init__(self)
+
+		# filter attributes so they aren't added to attrDict 
+		self.__FILTER_GET_ATTR__ = ('C', 'D')
+
+		# filter attributes so they aren't set to object when 
+		# retrieved from attrDict 
+		self.__FILTER_SET_ATTR__ = ('C', 'D')
+
 		self.a = 0 # instance attribute
 		self.b = 1
 		self.l = [0, 1, 2]
+		self.T = (0, 1, 2)
 		self.basicDict = {'a': 0, 'b': 1, 'c': 2}
 		self._p = None
 		self._p2 = None
@@ -168,7 +177,6 @@ if not instAttrsEqual:
 
 		if attrVal != inst2AttrVal:
 
-			print(attrName)
 			print('inst1 attr', attrName)
 			pprint.pprint(attrVal)
 			print('inst2 attr', attrName)
