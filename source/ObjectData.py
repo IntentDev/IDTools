@@ -1,3 +1,4 @@
+import pprint
 class ObjectData:
 
 	def __init__(self):
@@ -15,6 +16,21 @@ class ObjectData:
 			return all(isinstance(key, str) and self.isSerializable(val) for key,val in data.items())
 		return False
 
+	def makeSerialList(self, inputList):
+		outputList = []
+		for inputItem in inputList:
+			t_ = type(inputItem)
+			tName = t_.__name__
+			inputItemVal = self.makeSerializable(inputItem)
+			val = {'_attr_val': inputItemVal, '_attr_type': tName, '_attr_set': True}
+			outputList.append(val)
+		
+		if isinstance(inputList, tuple):
+			outputList = tuple(outputList)
+		
+		return outputList
+
+
 	def makeSerializable(self, attrVal):
 
 		if isinstance(attrVal, (list, tuple)):
@@ -26,10 +42,10 @@ class ObjectData:
 				if isinstance(val, (list, tuple)):
 					newVal = []
 					for item in val:
-						type_ = type(item)
-						typeName = type_.__name__
+						t_ = type(item)
+						tName = t_.__name__
 						itemVal = self.makeSerializable(item)
-						v = {'value': itemVal, 'type': typeName, 'set': True}
+						v = {'_attr_val': itemVal, '_attr_type': tName, '_attr_set': True}
 						newVal.append(v)
 					
 					if isinstance(val, tuple):
@@ -40,19 +56,18 @@ class ObjectData:
 					newVal = {}
 
 					for k, item in val.items():
-						type_ = type(item)
-						typeName = type_.__name__
+						t_ = type(item)
+						tName = t_.__name__
 						itemVal = self.makeSerializable(item)
-						v = {'value': itemVal, 'type': typeName, 'set': True}
+						v = {'_attr_val': itemVal, '_attr_type': tName, '_attr_set': True}
 						newVal[k] = v
 					
 					val = newVal				
 				
 				else:
-
 					val = self.GetAttrs(obj=val)
 				
-				v = {'value': val, 'type': typeName, 'set': True}
+				v = {'_attr_val': val, '_attr_type': typeName, '_attr_set': True}
 				l.append(v)
 
 			if isinstance(attrVal, tuple):
@@ -71,10 +86,10 @@ class ObjectData:
 				if isinstance(val, (list, tuple)):
 					newVal = []
 					for item in val:
-						type_ = type(item)
-						typeName = type_.__name__
+						t_ = type(item)
+						tName = t_.__name__
 						itemVal = self.makeSerializable(item)
-						v = {'value': itemVal, 'type': typeName, 'set': True}
+						v = {'_attr_val': itemVal, '_attr_type': tName, '_attr_set': True}
 						newVal.append(v)
 					
 					if isinstance(val, tuple):
@@ -85,17 +100,17 @@ class ObjectData:
 					newVal = {}
 
 					for k, item in val.items():
-						type_ = type(item)
-						typeName = type_.__name__
+						t_ = type(item)
+						tName = t_.__name__
 						itemVal = self.makeSerializable(item)
-						v = {'value': itemVal, 'type': typeName, 'set': True}
+						v = {'_attr_val': itemVal, '_attr_type': tName, '_attr_set': True}
 						newVal[k] = v
 					
 					val = newVal
 				else:
 					val = self.GetAttrs(obj=val)
 				
-				v = {'value': val, 'type': typeName, 'set': True}
+				v = {'_attr_val': val, '_attr_type': typeName, '_attr_set': True}
 
 				d[key] = v
 			attrVal = d
@@ -104,7 +119,6 @@ class ObjectData:
 			attrVal = self.GetAttrs(obj=attrVal)
 			pass
 		return attrVal
-
 
 	def GetAttrs(self, obj=None):
 		
@@ -115,134 +129,128 @@ class ObjectData:
 	
 		# get instance attributes
 		attrs = {}
-
-		for attrName, attrVal in obj.__dict__.items():
-			
-			type_ = type(attrVal)
-			typeName = type_.__name__	
-
-			if not self.isSerializable(attrVal):
-				attrVal = self.makeSerializable(attrVal)
-
-			attrs[attrName] = {'value': attrVal, 'type': typeName, 'set': True}
-
-		# get class attributes that are not callable
-		for attrName in obj.__class__.__dict__.keys():
-			if attrName[:2] != '__':		
-				# check for static or class method
-				value = getattr(obj.__class__, attrName)
+		if obj.__class__.__module__ not in ('td', 'tdu'):
+			for attrName, attrVal in obj.__dict__.items():
 				
-				if not callable(value):			
-					type_ = type(value)
-					typeName = type_.__name__
-
-					if type_ != property:
-						if not self.isSerializable(value):
-							value = self.makeSerializable(value)
-						else:
-							value = getattr(obj, attrName)
-						attrSet = True
-
-					else:
-						attrSet = value.fset != None
-
-						
-						if not self.isSerializable(value.__get__(obj)):
-
-							t_ = type(getattr(obj, attrName))
-							tName = t_.__name__
-
-							val = self.makeSerializable(getattr(obj, attrName))
-							value = {'value': val, 'type': tName, 'set': attrSet}
-
-						else:
-
-							value = getattr(obj, attrName)			
-					
-					attrs[attrName] = {'value': value, 'type': typeName, 'set': attrSet}
+				type_ = type(attrVal)
+				typeName = type_.__name__	
+				set_ = attrVal.__class__.__module__ not in ('td', 'tdu')
 	
+				if not self.isSerializable(attrVal):
+					attrVal = self.makeSerializable(attrVal)
+				
+				attrs[attrName] = {'_attr_val': attrVal, '_attr_type': typeName, '_attr_set': set_}
+
+			# get class attributes that are not callable
+			if hasattr(obj.__class__, '__dict__'):
+
+				for attrName in obj.__class__.__dict__.keys():
+					if attrName[:2] != '__':		
+						# check for static or class method
+						value = getattr(obj.__class__, attrName)
+						
+						if not callable(value):			
+							type_ = type(value)
+							typeName = type_.__name__
+							set_ = value.__class__.__module__ not in ('td', 'tdu')
+
+							if type_ != property:
+								if not self.isSerializable(value):
+									value = self.makeSerializable(value)
+								else:
+									value = getattr(obj, attrName)
+								#set_ = True
+
+							else:
+								set_ = value.fset != None
+
+								
+								if not self.isSerializable(value.__get__(obj)):
+
+									t_ = type(getattr(obj, attrName))
+									tName = t_.__name__
+
+									val = self.makeSerializable(getattr(obj, attrName))
+									value = {'_attr_val': val, '_attr_type': tName, '_attr_set': set_}
+
+								else:
+
+									value = getattr(obj, attrName)			
+							
+							attrs[attrName] = {'_attr_val': value, '_attr_type': typeName, '_attr_set': set_}
+
+
 		return attrs
 
-	def makeList(self, attrVal):
 
-		l = []
 
-		for listVal in attrVal['value']:
+	def isAttrDict(self, item):
+		if isinstance(item, dict):
+			if item.get('_attr_val'):
+				return True
+		return False
 
-			if isinstance(listVal, dict):
 
-				if listVal.get('value'):
-					
-					attr = type(listVal['type'], (), {})()
-					try:
-						for key, val in listVal['value'].items():
+	def makeList(self, inputList):
 
-							if val['type'] in ('int', 'float', 'str', 'bool', 'NoneType'):
-								setattr(attr, key, val['value'])
-							else:
-								setattr(attr, key, self.makeNotBasicType(val))
-					except Exception as e:
-						print('error', attr)
-						print(e)
-					l.append(attr)
+		outputList = []
+
+		for inputVal in inputList['_attr_val']:
+
+			if self.isAttrDict(inputVal):
+
+				if self.isBasicTypes(inputVal):
+					attr = inputVal['_attr_val']
 
 				else:
+					attr = self.makeNotBasicType(inputVal)
 
-					l.append(self.makeDict(listVal))
-			
-			elif isinstance(listVal, (list, tuple)):
+				outputList.append(attr)
 
-				l.append(self.makeList(listVal))
-
-
-
-
-		return l
-
-	def makeDict(self, attrVal):
-
-		d = {}
-		if attrVal.get('value'):
-			for dictKey, dictVal in attrVal['value'].items():
-
-				if isinstance(dictVal, dict):
-
-					if dictVal.get('value'):
-
-						attr = type(dictVal['type'], (), {})()
-						for key, val in dictVal['value'].items():
-
-							if val['type'] in ('int', 'float', 'str', 'bool', 'NoneType'):
-								setattr(attr, key, val['value'])
-							else:
-								setattr(attr, key, self.makeNotBasicType(val))
-
-						d[dictKey] = attr
-
-					else:
-
-						d[dictKey] = self.makeDict(dictVal)
+			else:
 				
-				elif isinstance(dictVal, (list, tuple)):
+				print('not attrDict:', inputList)
 
-					d[dictKey] = self.makeList(dictVal)
-		else:
-			d = attrVal
+			
 
-		return d
+		if inputList['_attr_type'] == 'tuple':
+			outputList = tuple(outputList)
+
+		return outputList
+
+	def makeDict(self, inputDict):
+
+		outputDict = {}
+		for inputKey, inputVal in inputDict['_attr_val'].items():
+			if self.isAttrDict(inputVal):
+
+				if self.isBasicTypes(inputVal):
+					attr = inputVal['_attr_val']
+
+				else:
+					attr = self.makeNotBasicType(inputVal)
+
+			
+				outputDict[inputKey] = attr
+
+			
+
+		return outputDict
+
+
 
 	def makeProperty(self, attrVal):
 
-		if isinstance(attrVal['value'], (int, float, str, bool, type(None))):
-			return attrVal['value']
+		if isinstance(attrVal['_attr_val'], (int, float, str, bool, type(None))):
+			return attrVal['_attr_val']
 
-		elif isinstance(attrVal['value'], dict):
+		elif isinstance(attrVal['_attr_val'], dict):
 
-			return self.makeNotBasicType(attrVal['value'])
+			return self.makeNotBasicType(attrVal['_attr_val'])
 
-		elif isinstance(attrVal['value'], (list, tuple)):
+		elif isinstance(attrVal['_attr_val'], (list, tuple)):
 
-			return self.makeList(attrVal['value'])
+			return self.makeList(attrVal['_attr_val'])
 
 
 		return  '__noSet__'
@@ -250,13 +258,14 @@ class ObjectData:
 	def isBasicTypes(self, data):
 
 		if isinstance(data, dict):
-			if data['type'] in ('bool', 'int', 'float', 'str', 'NoneType'):
-				return True
-			elif data['type'] in ('tuple', 'list'):
-				return all(self.isBasicTypes(x) for x in data['value'])
 			
-			elif data['type'] == 'dict':
-				return all(isinstance(key, str) and self.isBasicTypes(val) for key,val in data['value'].items())
+			if data['_attr_type'] in ('bool', 'int', 'float', 'str', 'NoneType'):
+				return True
+			elif data['_attr_type'] in ('tuple', 'list'):
+				return all(self.isBasicTypes(x) for x in data['_attr_val'])
+			
+			elif data['_attr_type'] == 'dict':
+				return all(isinstance(key, str) and self.isBasicTypes(val) for key,val in data['_attr_val'].items())
 
 		elif isinstance(data, (float, int, list, tuple, dict, type(None))):
 			return True
@@ -264,39 +273,38 @@ class ObjectData:
 		return False
 
 	def makeNotBasicType(self, attrVal):
-		
+	
 		setProperty = True
 
-		if attrVal['type'] in ('tuple', 'list'):
-			
-			l = self.makeList(attrVal)
-
-			if attrVal['type'] == 'tuple':
-				l = tuple(l)			
-			
-			return l
+		if attrVal['_attr_type'] in ('tuple', 'list'):
 		
-		elif attrVal['type'] == 'dict':
+			return self.makeList(attrVal)
+		
+		elif attrVal['_attr_type'] == 'dict':
 			
 			return self.makeDict(attrVal)
 		
-		elif attrVal['type'] == 'property':
+		elif attrVal['_attr_type'] == 'property':
 
-			if attrVal['set'] and setProperty:
+			if setProperty:
 				
 				return self.makeProperty(attrVal)
 
 			return '__noSet__'
 
 		else:
+			# make returned attribute of type specified
+			attr = type(attrVal['_attr_type'], (), {})()
+			for key, val in attrVal['_attr_val'].items():
 
-			attr = type(attrVal['type'], (), {})()
-			for key, val in attrVal['value'].items():
-
-				if val['type'] in ('int', 'float', 'str', 'bool', 'NoneType'):
-					setattr(attr, key, val['value'])
+				if val['_attr_type'] in ('int', 'float', 'str', 'bool', 'NoneType'):
+					# set attribute of returned attribute
+					setattr(attr, key, val['_attr_val'])
+				
 				else:
+					# set attribute of returned attribute
 					setattr(attr, key, self.makeNotBasicType(val))
+					
 
 			return attr
 		
@@ -309,13 +317,14 @@ class ObjectData:
 
 			if self.isBasicTypes(attrVal):
 
-				if attrVal['set']:
+				if attrVal['_attr_set']:
 
-					setattr(obj, attrName, attrVal['value'])
+					setattr(obj, attrName, attrVal['_attr_val'])
 			else:
 				#debug('SetAttrs Set:', attrName)
 
 				attr = self.makeNotBasicType(attrVal)
 
-				if attr != '__noSet__':
+
+				if attr != '__noSet__' and attrVal['_attr_set']:
 					setattr(obj, attrName, attr)
