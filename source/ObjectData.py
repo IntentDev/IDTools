@@ -9,33 +9,49 @@ class ObjectData:
 		if not obj:
 			obj = self
 
+		# get instance attributes
 		attrs = {}
-		if obj.__class__.__module__ not in ('td', 'tdu'):
+		for attrName, attrVal in obj.__dict__.items():			
+			type_ = type(attrVal)
+			typeName = type_.__name__	
+			attrSet = True #attrVal.__class__.__module__ not in ('td', 'tdu')
+			createKey = True
 
-			# get instance attributes
-			for attrName, attrVal in obj.__dict__.items():			
-				type_ = type(attrVal)
-				typeName = type_.__name__	
-				attrSet = attrVal.__class__.__module__ not in ('td', 'tdu')
-	
+			if attrVal.__class__.__module__ not in ('td', 'tdu'):
 				if not self.isSerializable(attrVal):
 					attrVal = self.makeSerializable(attrVal, returnDict=False)
 				
+			elif hasattr(attrVal, 'OPType'):
+				attrVal = attrVal.path
+				typeName = 'OP'
+
+			elif attrVal.__class__ == Par:
+				attrVal = self.makePar(attrVal)
+
+			else: createKey = False
+
+			if createKey:		
 				attrs[attrName] = {'_attr_val': attrVal, 
 									'_attr_type': typeName, 
 									'_attr_set': attrSet}
 
-			# get class attributes that are not callable
-			if hasattr(obj.__class__, '__dict__'):
-				for attrName in obj.__class__.__dict__.keys():
-					if attrName[:2] != '__':
 
-						# check for static or class method
-						attrVal = getattr(obj.__class__, attrName)
-						if not callable(attrVal):			
+
+		# get class attributes that are not callable
+		if hasattr(obj.__class__, '__dict__'):
+			for attrName in obj.__class__.__dict__.keys():
+				if attrName[:2] != '__':
+
+					# check for static or class method
+					attrVal = getattr(obj.__class__, attrName)
+					if not callable(attrVal):
+
+						if attrVal.__class__.__module__ not in ('td', 'tdu'):
+
 							type_ = type(attrVal)
 							typeName = type_.__name__
-							attrSet = attrVal.__class__.__module__ not in ('td', 'tdu')
+							attrSet = False
+							createKey = True
 
 							if type_ != property:
 								if not self.isSerializable(attrVal):
@@ -46,16 +62,27 @@ class ObjectData:
 							else:
 								# get property
 								attrSet = attrVal.fset != None
-	
+
 								if not self.isSerializable(attrVal.__get__(obj)):
 									attrVal = self.makeSerializable(getattr(obj, attrName), 
 																	inputAttrSet=attrSet)
 								else:
-									attrVal = getattr(obj, attrName)			
-							
+									attrVal = getattr(obj, attrName)
+
+						elif hasattr(attrVal, 'OPType'):
+							attrVal = attrVal.path
+							typeName = 'OP'
+
+						elif attrVal.__class__ == Par:
+							attrVal = self.makePar(attrVal)
+
+						else: createKey = False
+
+						if createKey:		
+
 							attrs[attrName] = {'_attr_val': attrVal, 
-												'_attr_type': typeName, 
-												'_attr_set': attrSet}
+											'_attr_type': typeName, 
+											'_attr_set': attrSet}
 
 		return attrs
 
@@ -166,6 +193,17 @@ class ObjectData:
 		
 		return outputDict
 
+	def makePar(self, par):
+
+		outputPar = {}
+		outputPar['val'] = par.val
+		outputPar['eval'] = par.eval()
+		outputPar['expr'] = par.expr
+		outputPar['mode'] = str(par.mode)
+		outputPar['owner'] = par.owner.path
+		outputPar['name'] = par.name
+
+		return outputPar
 
 	def SetAttrs(self, objData, setProperty=True, obj=None):
 
@@ -216,6 +254,13 @@ class ObjectData:
 				return self.makeProperty(attrVal)
 
 			return '__noSet__'
+
+		elif attrVal['_attr_type'] == 'OP':
+			return op(attrVal['_attr_val'])
+
+		elif attrVal['_attr_type'] == 'Par':
+			OP = op(attrVal['_attr_val']['owner'])
+			return getattr(OP.par, attrVal['_attr_val']['name'])
 
 		else:
 			# make returned attribute of type specified

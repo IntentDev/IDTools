@@ -17,6 +17,8 @@ class MyClass(ObjectData):
 
 	c = 3 # class attribute
 	d = Position()
+	StestOP = op('level1')
+	StestPar = StestOP.par.opacity
 	#Spos3 = Position()
 	#SposList = [Position(), Position()]
 	#SposTuple = (Position(), Position())
@@ -50,9 +52,15 @@ class MyClass(ObjectData):
 		self.matrix = tdu.Matrix()
 		self.matrix2 = tdu.Matrix().vals
 		self.testOP = op('level1')
-		self.testOPName = self.testOP.name
-		self.testPar = op('level1').par.opacity
-		self.testPar2 = op('level1').par.opacity.eval()
+		self.testOPPath = self.testOP.path
+		self.testPar = self.testOP.par.opacity
+
+		# should now be only implemented as properties so 
+		# SetAttrs() doens't overwrite with value
+		self.testPar2 = self.testOP.par.opacity.eval()
+
+		# to recall actual par set par as attribute
+		self.testPar3 = self.testOP.par.brightness1
 				
 	def myfunc(self):      # non-static method
 		return self.a		
