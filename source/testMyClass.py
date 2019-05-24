@@ -1,3 +1,6 @@
+import json
+import pprint
+
 ObjectData = op('ObjectData').module.ObjectData
 
 class Position:
@@ -14,12 +17,12 @@ class MyClass(ObjectData):
 
 	c = 3 # class attribute
 	d = Position()
-	#pos3 = Position()
-	#SposList = [Position(), Position()]
-	#SposTuple = (Position(), Position())
-	#SposDict = {'pos1': Position(), 'pos2': Position()}
-	#SposDict2 = {'pos1': SposList, 'pos2': SposTuple}
-	#SposList2 = [SposTuple, SposDict2]	
+	Spos3 = Position()
+	SposList = [Position(), Position()]
+	SposTuple = (Position(), Position())
+	SposDict = {'pos1': Position(), 'pos2': Position()}
+	SposDict2 = {'pos1': SposList, 'pos2': SposTuple}
+	SposList2 = [SposTuple, SposDict2]	
 	
 
 	def __init__(self):
@@ -44,9 +47,12 @@ class MyClass(ObjectData):
 		self.posList2 = [self.posTuple2, self.posDict]
 		self.posDict3 = {'pos1': self.l, 'pos2': self.l}
 
-		self.matrix = tdu.Matrix().vals
+		self.matrix = tdu.Matrix()
+		self.matrix2 = tdu.Matrix().vals
 		self.testOP = op('level1')
+		self.testOPName = self.testOP.name
 		self.testPar = op('level1').par.opacity
+		self.testPar2 = op('level1').par.opacity.eval()
 				
 	def myfunc(self):      # non-static method
 		return self.a		
@@ -72,9 +78,10 @@ class MyClass(ObjectData):
 		return self._p2'''
 		
 
-		
+print('\nInitialize inst1')		
 inst1 = MyClass()
 
+# set some values in inst1
 inst1.a = 5
 inst1.b = 6
 inst1.p =  Position()
@@ -84,32 +91,27 @@ inst1.pos.y = 4.0
 inst1.pos.z = Position()
 inst1.pos.z.x = 55
 
-
 inst1.posList[0].x = 6.0
 inst1.posList[0].y = 6.1
 inst1.posList[0].z = 6.2
 
-'''
 inst1.posTuple[0].x = 7.0
 inst1.posTuple[0].y = 7.1
 inst1.posTuple[0].z = 7.2
 
 inst1.posDict['pos2'].x = 8.0
 inst1.posDict['pos2'].y = 8.1
-inst1.posDict['pos2'].z = 8.2'''
+inst1.posDict['pos2'].z = 8.2
 
-
-#inst1.printAttrs()
-
-import json
-import pprint
+# serialize inst1 non callable attributes
 inst1Data = inst1.GetAttrs()
 pprint.pprint(inst1Data)
 inst1Data = json.dumps(inst1Data)
 
-
-print('\nInitialize Inst2')
+print('\nInitialize inst2')
 inst2 = MyClass()
+
+# delete some attributes in inst2
 delattr(inst2, 'a')
 delattr(inst2, 'b')
 delattr(inst2, 'basicDict')
@@ -125,27 +127,13 @@ delattr(inst2, 'posTuple3')
 #pprint.pprint(inst2.GetAttrs())
 
 print('\nSet Inst2')	
+# set attributes of inst2 with serialized attributes of inst1	
 inst2.SetAttrs(json.loads(inst1Data)) 
-#inst2.SetAttrs(inst1Data)
-#inst2.SetAttrs(json.loads(inst1Data), setProperty=False)
 
-print('\nGet Inst2')	
+
+print('\nGet Inst2')
+# get and print updated inst2 attributes
 pprint.pprint(inst2.GetAttrs())
 
+# are inst1 and inst2 attribute equal?
 print('inst1Attrs == inst2Attrs:', inst1.GetAttrs() == inst2.GetAttrs())
-#pprint.pprint(inst2.posList)
-#pprint.pprint(inst2.posDict)
-'''
-pos = Position()
-
-objData = ObjectData()
-
-posData = objData.GetAttrs(obj=pos)
-print(posData)'''
-
-'''
-l = []
-
-l.append(Position())
-l.append(type('Position', (), {})())
-print(l)'''
