@@ -4,8 +4,8 @@ class ObjectData:
 	
 	Use GetAttrs() to return a JSON or TD storage serializable dict of all 
 	the attributes of the extension or class inheriting ObjectData. 
-	All attributes are converted to dicts with '_attr_val', 'attr_type' 
-	and 'attr_set' keys. Non-serializable attributes ie. instances
+	All attributes are converted to dicts with '_attr_val', '_attr_type' 
+	and '_attr_set' keys. Non-serializable attributes ie. instances
 	of non-base types (float, int, str, list etc...), lists, dicts or 
 	tuples of non-base types and any combination of the above are all 
 	converted. For example:
@@ -16,31 +16,32 @@ class ObjectData:
 		- dict (of floats, ints, strings, custom objects etc..) -> dict of attrDicts
 		- list of lists or dicts -> list of lists or dicts of attrDicts -> attrDicts
 			of all sub objects (infinitely deep)
-		- attribute of custom object that is also custom object -> attrDict -> attrDict
+		- attribute of custom objects that is also a custom object -> attrDict -> attrDict
 			also infinitely deep (at least to memory constraints)
 		- properties -> propery attrDict containing property data attrDict
 		- td.op -> OP attrDict which contains a string of the op path
 		- td.op.par -> Par attrDict which contains various par attributes in 
 			which only owner.path and par.name are being used in SetAttrs()
 		- all other td and tdu types are filterd and not added to attrsDict 
-			at this time. (still need to add a few other td built in base 
-			classes such as Project and UI Class) for types such as tdu.Matrix
-			or tdu.Vector use the .vals member in property to get and set the actual data.
+			at this time. (still need to fliter a few other td built in base 
+			classes such as Project and UI Class)
+			- For types such as tdu.Matrix or tdu.Vector use the .vals 
+				member in a property to get and set the actual data.
 
 	Use GetAttrs() to return a JSON or TD storage serializable dict then
-	dump to JSON or store. Then use SetAttrs(yourAttrsDataDict) to set all
+	dump to JSON or store in an op. Then use SetAttrs(yourAttrsDataDict) to set all
 	the attributes of either the same instance or another instance of the same
 	class/extension. 
 	
 	With keeping in mind that properties are slightly different than attributes
 	you can even create empty an instance of a nearly empty class and fill it
-	attributes that did not previously exist. 
+	with attributes that did not previously exist in that instance. 
 
 	Should be able to work without inheritance but that has not been tested,
-	for now it is meant to be used as a inherited base class.
+	for now it is meant to be used as an inherited base class.
 
-	Use self.__filter_attr__ = (tuple of names (str) of attributes) that you 
-	may not want to be added to the attrsDict
+	Use self.__filter_attr__ = (tuple of names(str) of attributes) that you 
+	do not want to be added to the attrsDict
 
 	'''
 	def __init__(self):
