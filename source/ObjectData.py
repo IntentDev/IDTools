@@ -1,6 +1,48 @@
-import pprint
 class ObjectData:
+	'''
+	Inherit ObjectData in an extension or class
+	
+	Use GetAttrs() to return a JSON or TD storage serializable dict of all 
+	the attributes of the extension or class inheriting ObjectData. 
+	All attributes are converted to dicts with '_attr_val', 'attr_type' 
+	and 'attr_set' keys. Non-serializable attributes ie. instances
+	of non-base types (float, int, str, list etc...), lists, dicts or 
+	tuples of non-base types and any combination of the above are all 
+	converted. For example:
 
+		- float -> attrDict
+		- custom object -> attrDict
+		- list (of floats, ints, strings, custom objects etc..) -> list of attrDicts
+		- dict (of floats, ints, strings, custom objects etc..) -> dict of attrDicts
+		- list of lists or dicts -> list of lists or dicts of attrDicts -> attrDicts
+			of all sub objects (infinitely deep)
+		- attribute of custom object that is also custom object -> attrDict -> attrDict
+			also infinitely deep (at least to memory constraints)
+		- properties -> propery attrDict containing property data attrDict
+		- td.op -> OP attrDict which contains a string of the op path
+		- td.op.par -> Par attrDict which contains various par attributes in 
+			which only owner.path and par.name are being used in SetAttrs()
+		- all other td and tdu types are filterd and not added to attrsDict 
+			at this time. (still need to add a few other td built in base 
+			classes such as Project and UI Class) for types such as tdu.Matrix
+			or tdu.Vector use the .vals member in property to get and set the actual data.
+
+	Use GetAttrs() to return a JSON or TD storage serializable dict then
+	dump to JSON or store. Then use SetAttrs(yourAttrsDataDict) to set all
+	the attributes of either the same instance or another instance of the same
+	class/extension. 
+	
+	With keeping in mind that properties are slightly different than attributes
+	you can even create empty an instance of a nearly empty class and fill it
+	attributes that did not previously exist. 
+
+	Should be able to work without inheritance but that has not been tested,
+	for now it is meant to be used as a inherited base class.
+
+	Use self.__filter_attr__ = (tuple of names (str) of attributes) that you 
+	may not want to be added to the attrsDict
+
+	'''
 	def __init__(self):
 
 		self.__filter__ = ('__filter__')
