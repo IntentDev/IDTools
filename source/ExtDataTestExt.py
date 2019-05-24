@@ -9,9 +9,17 @@ class ExtDataTestExt(ObjectData):
 		ObjectData.__init__(self)
 
 		self.ownerComp = ownerComp
+		# filter attributes so they aren't added to 
+		# data dict by adding to optional instance 
+		#attribute called'__filter_attr__'
+		#self.__filter_attr__ = ('C', 'D', 'Floatpar')
+		self.__filter_attr__ = ('C', 'D')
 
 		self.A = 0
 		self.B = 0
+		self.C = 1
+		self.D = 2
+		
 
 	@property
 	def Floatpar(self):
@@ -19,4 +27,6 @@ class ExtDataTestExt(ObjectData):
 
 	@Floatpar.setter
 	def Floatpar(self, value):
+	
+		print('Floatpar Set:', value)
 		self.ownerComp.par.Floatpar = value

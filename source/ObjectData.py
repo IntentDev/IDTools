@@ -2,6 +2,8 @@ import pprint
 class ObjectData:
 
 	def __init__(self):
+
+		self.__filter__ = ()
 		pass
 
 	def GetAttrs(self, obj=None):
@@ -15,7 +17,11 @@ class ObjectData:
 			type_ = type(attrVal)
 			typeName = type_.__name__	
 			attrSet = True #attrVal.__class__.__module__ not in ('td', 'tdu')
-			createKey = True
+			createKey = (attrName[:13] != '_ObjectData__')
+
+			if hasattr(obj, '__filter_attr__'):
+				createKey = (attrName not in obj.__filter_attr__  and 
+							attrName[:2] != '__')
 
 			if attrVal.__class__.__module__ not in ('td', 'tdu'):
 				if not self.isSerializable(attrVal):
@@ -24,6 +30,8 @@ class ObjectData:
 			elif hasattr(attrVal, 'OPType'):
 				attrVal = attrVal.path
 				typeName = 'OP'
+				attrSet = attrName not in ('ownerComp')
+
 
 			elif attrVal.__class__ == Par:
 				attrVal = self.makePar(attrVal)
@@ -46,12 +54,14 @@ class ObjectData:
 					attrVal = getattr(obj.__class__, attrName)
 					if not callable(attrVal):
 
+						createKey = attrName[:2] != '__'
+
 						if attrVal.__class__.__module__ not in ('td', 'tdu'):
 
 							type_ = type(attrVal)
 							typeName = type_.__name__
 							attrSet = False
-							createKey = True
+							
 
 							if type_ != property:
 								if not self.isSerializable(attrVal):
@@ -78,7 +88,12 @@ class ObjectData:
 
 						else: createKey = False
 
-						if createKey:		
+						if hasattr(obj, '__filter_attr__'):		
+							createKey = (createKey
+										and attrName not in obj.__filter_attr__
+										and attrName[:2] != '__')		
+
+						if createKey:
 
 							attrs[attrName] = {'_attr_val': attrVal, 
 											'_attr_type': typeName, 
