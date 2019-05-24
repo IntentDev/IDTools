@@ -116,7 +116,7 @@ inst1.posDict['pos2'].z = 8.2
 # serialize inst1 non callable attributes
 inst1Data = inst1.GetAttrs()
 pprint.pprint(inst1Data)
-inst1Data = json.dumps(inst1Data)
+inst1DataJSON = json.dumps(inst1Data)
 
 print()
 print('///////////////////////////////////////////////////////////////////////////////')
@@ -144,16 +144,32 @@ delattr(inst2, 'posTuple3')
 print('\nSet Inst2\n')	
 print('///////////////////////////////////////////////////////////////////////////////')	
 # set attributes of inst2 with serialized attributes of inst1	
-inst2.SetAttrs(json.loads(inst1Data)) 
+inst2.SetAttrs(json.loads(inst1DataJSON)) 
 
 
 print('\nGet Inst2\n')
 print('///////////////////////////////////////////////////////////////////////////////')
 print()		
 # get and print updated inst2 attributes
-pprint.pprint(inst2.GetAttrs())
+inst2Data = inst2.GetAttrs()
+pprint.pprint(inst2Data)
 
 # are inst1 and inst2 attribute equal?
 print()
 print('///////////////////////////////////////////////////////////////////////////////')
-print('\ninst1Attrs == inst2Attrs:', inst1.GetAttrs() == inst2.GetAttrs())
+instAttrsEqual = inst1.GetAttrs() == inst2.GetAttrs()
+print('\ninst1Attrs == inst2Attrs:', instAttrsEqual)
+
+if not instAttrsEqual:
+
+	for attrName, attrVal in inst1Data.items():
+
+		inst2AttrVal = inst2Data[attrName]
+
+		if attrVal != inst2AttrVal:
+
+			print(attrName)
+			print('inst1 attr', attrName)
+			pprint.pprint(attrVal)
+			print('inst2 attr', attrName)
+			pprint.pprint(inst2AttrVal)

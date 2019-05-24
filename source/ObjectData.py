@@ -3,7 +3,7 @@ class ObjectData:
 
 	def __init__(self):
 
-		self.__filter__ = ()
+		self.__filter__ = ('__filter__')
 		pass
 
 	def GetAttrs(self, obj=None):
@@ -91,7 +91,7 @@ class ObjectData:
 						if hasattr(obj, '__filter_attr__'):		
 							createKey = (createKey
 										and attrName not in obj.__filter_attr__
-										and attrName[:2] != '__')		
+										and attrName[:2] != '__')	
 
 						if createKey:
 
