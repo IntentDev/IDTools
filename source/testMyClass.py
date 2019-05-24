@@ -17,12 +17,12 @@ class MyClass(ObjectData):
 
 	c = 3 # class attribute
 	d = Position()
-	Spos3 = Position()
-	SposList = [Position(), Position()]
-	SposTuple = (Position(), Position())
-	SposDict = {'pos1': Position(), 'pos2': Position()}
-	SposDict2 = {'pos1': SposList, 'pos2': SposTuple}
-	SposList2 = [SposTuple, SposDict2]	
+	#Spos3 = Position()
+	#SposList = [Position(), Position()]
+	#SposTuple = (Position(), Position())
+	#SposDict = {'pos1': Position(), 'pos2': Position()}
+	#SposDict2 = {'pos1': SposList, 'pos2': SposTuple}
+	#SposList2 = [SposTuple, SposDict2]	
 	
 
 	def __init__(self):
@@ -77,8 +77,10 @@ class MyClass(ObjectData):
 	def p2(self):
 		return self._p2'''
 		
-
-print('\nInitialize inst1')		
+print('///////////////////////////////////////////////////////////////////////////////')
+print('\nInitialize inst1\n')
+print('///////////////////////////////////////////////////////////////////////////////')
+print()			
 inst1 = MyClass()
 
 # set some values in inst1
@@ -108,7 +110,12 @@ inst1Data = inst1.GetAttrs()
 pprint.pprint(inst1Data)
 inst1Data = json.dumps(inst1Data)
 
-print('\nInitialize inst2')
+print()
+print('///////////////////////////////////////////////////////////////////////////////')
+print('///////////////////////////////////////////////////////////////////////////////')
+print('\nInitialize inst2\n')
+print('///////////////////////////////////////////////////////////////////////////////')
+
 inst2 = MyClass()
 
 # delete some attributes in inst2
@@ -126,14 +133,19 @@ delattr(inst2, 'posDict2')
 delattr(inst2, 'posTuple3')
 #pprint.pprint(inst2.GetAttrs())
 
-print('\nSet Inst2')	
+print('\nSet Inst2\n')	
+print('///////////////////////////////////////////////////////////////////////////////')	
 # set attributes of inst2 with serialized attributes of inst1	
 inst2.SetAttrs(json.loads(inst1Data)) 
 
 
-print('\nGet Inst2')
+print('\nGet Inst2\n')
+print('///////////////////////////////////////////////////////////////////////////////')
+print()		
 # get and print updated inst2 attributes
 pprint.pprint(inst2.GetAttrs())
 
 # are inst1 and inst2 attribute equal?
-print('inst1Attrs == inst2Attrs:', inst1.GetAttrs() == inst2.GetAttrs())
+print()
+print('///////////////////////////////////////////////////////////////////////////////')
+print('\ninst1Attrs == inst2Attrs:', inst1.GetAttrs() == inst2.GetAttrs())

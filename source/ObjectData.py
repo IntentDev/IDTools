@@ -196,7 +196,7 @@ class ObjectData:
 				return all(isinstance(key, str) and self.isBasicTypes(val) 
 												for key,val in data['_attr_val'].items())
 
-		elif isinstance(data, (float, int, list, tuple, dict, type(None))):
+		elif isinstance(data, (float, int, list, tuple, dict, str, type(None))):
 			return True
 
 		return False
