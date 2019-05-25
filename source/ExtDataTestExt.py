@@ -1,4 +1,4 @@
-ObjectData = op('ObjectData').module.ObjectData
+ObjectData = op('IDC').module.ObjectData
 
 class ExtDataTestExt(ObjectData):
 	"""
