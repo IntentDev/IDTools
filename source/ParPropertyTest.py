@@ -1,30 +1,45 @@
 
-ParProperty = op('ParProperty').module.ParProperty
+ParProperty = op('parProperty').module
 
-class ParPropertyTest(ParProperty):
+class ParPropertyTest():
 	"""
 	ParPropertyTest description
 	"""
 	def __init__(self, ownerComp):
 		# The component to which this extension is attached
 		self.ownerComp = ownerComp
-		ParProperty.__init__(self, ownerComp)
+		
 
-	def parPropertiesCreate(self):
+		#ParProperty.createParProperties(self)
+		ParProperty.createParProperty(self, 'Floatpar', 
+		 							getCallback=self.Floatpar_get,
+									setCallback=self.Floatpar_set,
+									postSetCallback=self.Floatpar_postSet)
 
-		for par in self.ownerComp.customPars:
+	def Floatpar_get(self, value):
 
-			self.parPropertyCreate(par)
+		print('Get callback!')
 
-		pass
+		return value
 
-	def parSetter(self, par, value):
+	def Floatpar_set(self, value):
 
-		par = value
+		print('Set callback!')
 
+		return value
 
-	def parPropertyCreate(self, par):
+	def Floatpar_postSet(self, value):
 
-		#setattr(self.__class__, par.name, property(lambda self: self.)
+		print('postSet callback!')
 
-		pass
+		return value
+
+	@property
+	def Floatpar(self):
+		print('get Floatpar')
+		return self.ownerComp.par.Floatpar.eval()
+
+	@Floatpar.setter
+	def Floatpar(self, value):
+		print('set Floatpar')
+		self.ownerComp.par.Floatpar = value
