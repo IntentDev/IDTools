@@ -40,17 +40,16 @@ class ParPropertyTest():
 									setterCallback=self.Floatpar_set,
 									postSetterCallback=self.Floatpar_postSet)
 
-		# create attribute called ParCallbacksLookup that is used by 
-		# parexec to check whether a parCallback is present and to be 
-		# able to effeciently call it. Need callback function "`Parname`_parCallback"
-		# for each par name in list, an optional name can be set inorder to have 
-		# different callback lists. It is only args for  
-		IDF.createParCallbacksLookup(self, parNames=['Floatpar', 'Menu'])						
-		# IDF.createParCallbacksLookup(self, lookupName='CustomLookupName',
-		# 									parNames=['Floatpar', 'Menu'])
+		# get (dict) used by a parexec to check whether a parCallback is present 
+		# and to be able to effeciently call it. For each name in the list a
+		# callback function named "`Parname`_parCallback" should exist.
+		self.ParCallbacks = IDF.getParCallbacksLookup(self, 
+							parNames=['Floatpar', 'Menu'])						
 
-	# custom par property callbacks
-	# all callbacks need a 'parName' and a 'value' argument
+	############################################################################
+	# custom ParProperty callbacks
+	# all callbacks need a 'parName' and 'value' arguments
+
 	def Floatpar_get(self, parName, value):
 		# value is evaluated from par then passed callback
 		# then returned value from this callback is return by getter
@@ -73,10 +72,15 @@ class ParPropertyTest():
 		# since the par has already been set there is no need to return anything
 		print('Custom Post Set callback:\t', parName, 'has been set to:', value)
 
+
+	############################################################################		
+	# Par callbacks
+	# 		
 	def Floatpar_parCallback(self, par):
 
 		print(par.name, 'is being set to:', par.eval(), '(printed from parCallback)')
+		self.ownerComp.op('constant1').par.value0 = par.eval()
 
-	def Menu_parCallback(self, par):
+	def Menu_parCallback(self, *args):
 
-		print(par.name, 'is being set to:', par.eval(), '(printed from parCallback)')
+		print(par.name, 'is being set to:', args[0].eval(), '(printed from parCallback)')
