@@ -71,7 +71,7 @@ def createParProperties(inst, pars=None, filterPars=[],
 			if par.tupletName not in filterPars:
 				createParProperty(inst, par.name)
 		
-def createParCallbacksLookup(inst, parNames=[]):
+def createParCallbacksLookup(inst, lookupName=None, parNames=[]):
 
 	parCallbacksLookup = {}
 
@@ -81,7 +81,9 @@ def createParCallbacksLookup(inst, parNames=[]):
 		if hasattr(inst, callbackName):
 			parCallbacksLookup[parName] = getattr(inst, callbackName)
 
+	if not lookupName:
+		lookupName = 'ParCallbacksLookup'
 
-	setattr(inst, 'ParCallbacksLookup', parCallbacksLookup)
+	setattr(inst, lookupName, parCallbacksLookup)
 
 

@@ -40,8 +40,14 @@ class ParPropertyTest():
 									setterCallback=self.Floatpar_set,
 									postSetterCallback=self.Floatpar_postSet)
 
-
-		IDF.createParCallbacksLookup(self, ['Floatpar', 'Menu'])						
+		# create attribute called ParCallbacksLookup that is used by 
+		# parexec to check whether a parCallback is present and to be 
+		# able to effeciently call it. Need callback function "`Parname`_parCallback"
+		# for each par name in list, an optional name can be set inorder to have 
+		# different callback lists. It is only args for  
+		IDF.createParCallbacksLookup(self, parNames=['Floatpar', 'Menu'])						
+		# IDF.createParCallbacksLookup(self, lookupName='CustomLookupName',
+		# 									parNames=['Floatpar', 'Menu'])
 
 	# custom par property callbacks
 	# all callbacks need a 'parName' and a 'value' argument
