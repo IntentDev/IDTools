@@ -50,20 +50,20 @@ class ObjectData:
 
 		self.__FILTER_GET__ = (	'__FILTER_GET__', '__FILTER_SET__',
 								'__FILTER_GET_ATTR__', '__FILTER_SET_ATTR__', 
-								'ownerComp')
+								'__CLASS_INSTANCE__', 'ownerComp')
 
 		self.__FILTER_SET__ = ()
 
 		pass
 
-	def GetAttrs(self, obj=None):
-		
-		if not obj:
-			obj = self
+	def GetAttrs(self, inst=None):
+		# inst is shortform for classInstance
+		if not inst:
+			inst = self
 
 		# get instance attributes
 		attrDict = {}
-		for attrName, attrVal in obj.__dict__.items():			
+		for attrName, attrVal in inst.__dict__.items():			
 			type_ = type(attrVal)
 			typeName = type_.__name__	
 			attrSet = True
@@ -75,13 +75,14 @@ class ObjectData:
 						)	
 
 
-			if hasattr(obj, '__FILTER_GET_ATTR__'):
+			if hasattr(inst, '__FILTER_GET_ATTR__'):
 				
 				createKey = (createKey and
-							attrName not in obj.__FILTER_GET_ATTR__)
+							attrName not in inst.__FILTER_GET_ATTR__)
 
 			if attrVal.__class__.__module__ not in ('td', 'tdu'):
 				if not self.isSerializable(attrVal):
+					
 					attrVal = self.makeSerializable(attrVal, returnDict=False)
 				
 			elif hasattr(attrVal, 'OPType'):
@@ -102,12 +103,12 @@ class ObjectData:
 
 
 		# get class attributes that are not callable
-		if hasattr(obj.__class__, '__dict__'):
-			for attrName in obj.__class__.__dict__.keys():
+		if hasattr(inst.__class__, '__dict__'):
+			for attrName in inst.__class__.__dict__.keys():
 				if attrName[:2] != '__':
 
 					# check for static or class method
-					attrVal = getattr(obj.__class__, attrName)
+					attrVal = getattr(inst.__class__, attrName)
 					if not callable(attrVal):
 
 						createKey = attrName[:2] != '__'
@@ -123,17 +124,17 @@ class ObjectData:
 								if not self.isSerializable(attrVal):
 									attrVal = self.makeSerializable(attrVal, returnDict=False)
 								else:
-									attrVal = getattr(obj, attrName)
+									attrVal = getattr(inst, attrName)
 
 							else:
 								# get property
 								attrSet = attrVal.fset != None
 
-								if not self.isSerializable(attrVal.__get__(obj)):
-									attrVal = self.makeSerializable(getattr(obj, attrName), 
+								if not self.isSerializable(attrVal.__get__(inst)):
+									attrVal = self.makeSerializable(getattr(inst, attrName), 
 																	inputAttrSet=attrSet)
 								else:
-									attrVal = getattr(obj, attrName)
+									attrVal = getattr(inst, attrName)
 
 						elif hasattr(attrVal, 'OPType'):
 							attrVal = attrVal.path
@@ -150,9 +151,9 @@ class ObjectData:
 										attrName not in self.__FILTER_GET__
 									)			
 
-						if hasattr(obj, '__FILTER_GET_ATTR__'):		
+						if hasattr(inst, '__FILTER_GET_ATTR__'):		
 							createKey = (createKey and
-										attrName not in obj.__FILTER_GET_ATTR__)	
+										attrName not in inst.__FILTER_GET_ATTR__)	
 
 						if createKey:
 
@@ -163,7 +164,7 @@ class ObjectData:
 		return attrDict
 
 	def isSerializable(self, data):
-
+		
 		if data is None:
 			return True
 
@@ -176,7 +177,7 @@ class ObjectData:
 		elif isinstance(data, dict):
 			return all(isinstance(key, str) and self.isSerializable(val) 
 											for key,val in data.items())
-
+		
 		return False
 
 	def makeSerializable(self, inputVal, inputTypeName=None, 
@@ -185,23 +186,7 @@ class ObjectData:
 		if isinstance(inputVal, (list, tuple)):
 			l = []
 			for val in inputVal:
-				type_ = type(val)
-				typeName = type_.__name__
-				
-				if isinstance(val, (list, tuple)):
-					val = self.makeSerialList(val)
-				
-				elif isinstance(val, dict):
-					val = self.makeSerialDict(val)				
-				
-				else:
-					val = self.GetAttrs(obj=val)
-				
-				v = {'_attr_val': val, 
-					'_attr_type': typeName, 
-					'_attr_set': True}
-
-				l.append(v)
+				l.append(self.makeAttrDict(val))
 
 			if isinstance(inputVal, tuple):
 				l = tuple(l)
@@ -211,28 +196,16 @@ class ObjectData:
 		elif isinstance(inputVal, dict):
 			d = {}
 			for key, val in inputVal.items():
-				type_ = type(val)
-				typeName = type_.__name__
-
-				if isinstance(val, (list, tuple)):
-					val = self.makeSerialList(val)
-
-				elif isinstance(val, dict):
-					val = self.makeSerialDict(val)	
-
-				else:
-					val = self.GetAttrs(obj=val)
-				
-				v = {'_attr_val': val, 
-					'_attr_type': typeName, 
-					'_attr_set': True}
-
-				d[key] = v
+				d[key] = self.makeAttrDict(val)
 
 			attrVal = d
 
+		elif type(inputVal).__name__ == 'method':
+			
+			attrVal = inputVal.__name__
+
 		else:
-			attrVal = self.GetAttrs(obj=inputVal)
+			attrVal = self.GetAttrs(inst=inputVal)
 		
 		if returnDict:
 			if not inputTypeName:
@@ -247,6 +220,28 @@ class ObjectData:
 						'_attr_set': inputAttrSet}
 				
 		return attrVal
+
+	def makeAttrDict(self, inputVal):
+		type_ = type(inputVal)
+		typeName = type_.__name__
+		
+		if isinstance(inputVal, (list, tuple)):
+			outputVal = self.makeSerialList(inputVal)
+		
+		elif isinstance(inputVal, dict):
+			outputVal = self.makeSerialDict(inputVal)
+
+		elif type(inputVal).__name__ == 'method':
+			outputVal = inputVal.__name__
+
+		else:
+			outputVal = self.GetAttrs(inst=inputVal)
+		
+		attrDict = {'_attr_val': outputVal, 
+					'_attr_type': typeName, 
+					'_attr_set': True}
+
+		return attrDict
 
 	def makeSerialList(self, inputList):
 
@@ -281,10 +276,12 @@ class ObjectData:
 
 		return outputPar
 
-	def SetAttrs(self, attrDict, setProperty=True, obj=None):
+	def SetAttrs(self, attrDict, setProperty=True, classInstance=None):
 
-		if not obj:
-			obj = self
+		if not classInstance:
+			self.__CLASS_INSTANCE__ = self
+		else:
+			self.__CLASS_INSTANCE__ = classInstance
 
 		if hasattr(self, '__FILTER_SET_ATTR__'):
 			
@@ -298,7 +295,7 @@ class ObjectData:
 					if attrVal['_attr_type'] == 'tuple':
 						attrVal['_attr_val'] = tuple(attrVal['_attr_val'])
 					
-					setattr(obj, attrName, attrVal['_attr_val'])
+					setattr(self.__CLASS_INSTANCE__, attrName, attrVal['_attr_val'])
 
 			else:
 				attr = self.makeNotBasicType(attrVal)
@@ -307,7 +304,9 @@ class ObjectData:
 					attrVal['_attr_set'] and 
 					attrName not in self.__FILTER_SET__):
 
-					setattr(obj, attrName, attr)
+					setattr(self.__CLASS_INSTANCE__, attrName, attr)
+
+		delattr(self, '__CLASS_INSTANCE__')
 	
 	def isBasicTypes(self, data):
 
@@ -342,6 +341,9 @@ class ObjectData:
 				return self.makeProperty(attrVal)
 
 			return '__noSet__'
+
+		elif attrVal['_attr_type'] == 'method':
+			return getattr(self.__CLASS_INSTANCE__, attrVal['_attr_val'])
 
 		elif attrVal['_attr_type'] == 'OP':
 			return op(attrVal['_attr_val'])

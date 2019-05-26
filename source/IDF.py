@@ -1,12 +1,12 @@
 # need to add readOnly argument and have option of no setter
 
-def createParProperty(inst, name, getCallback=None, 
-						setCallback=None, postSetCallback=None):
+def createParProperty(inst, name, getterCallback=None, 
+						setterCallback=None, postSetterCallback=None):
 	print('createParProperty:', name)
 
-	if getCallback or setCallback or postSetCallback:		
-		createParPropCallbacks(inst, name, getCallback,
-									setCallback, postSetCallback)
+	if getterCallback or setterCallback or postSetterCallback:		
+		createParPropCallbacks(inst, name, getterCallback,
+									setterCallback, postSetterCallback)
 									
 	else:
 		createParPropNoCallbacks(inst, name)
@@ -22,27 +22,27 @@ def createParPropNoCallbacks(inst, name):
 
 	setattr(inst.__class__, name, property(getter, setter))
 
-def createParPropCallbacks(inst, name, getCallback,
-							setCallback, postSetCallback):
+def createParPropCallbacks(inst, name, getterCallback,
+							setterCallback, postSetterCallback):
 
 	def getter(inst):
 		
 		value = getattr(inst.ownerComp.par, name).eval()
 
-		if getCallback:
-			return getCallback(name, value)
+		if getterCallback:
+			return getterCallback(name, value)
 
 		return value
 
 	def setter(inst, value):
 		
-		if setCallback:
-			value = setCallback(name, value)
+		if setterCallback:
+			value = setterCallback(name, value)
 
 		setattr(inst.ownerComp.par, name, value)
 
-		if postSetCallback:
-			postSetCallback(name, value)
+		if postSetterCallback:
+			postSetterCallback(name, value)
 
 	setattr(inst.__class__, name, property(getter, setter))
 
@@ -71,4 +71,17 @@ def createParProperties(inst, pars=None, filterPars=[],
 			if par.tupletName not in filterPars:
 				createParProperty(inst, par.name)
 		
-	
+def createParCallbacksLookup(inst, parNames=[]):
+
+	parCallbacksLookup = {}
+
+	for parName in parNames:
+		callbackName = parName + '_parCallback'	
+
+		if hasattr(inst, callbackName):
+			parCallbacksLookup[parName] = getattr(inst, callbackName)
+
+
+	setattr(inst, 'ParCallbacksLookup', parCallbacksLookup)
+
+

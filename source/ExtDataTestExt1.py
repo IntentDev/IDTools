@@ -1,12 +1,9 @@
-ObjectData = op('IDC').module.ObjectData
 
-class ExtDataTestExt(ObjectData):
+class ExtDataTestExt():
 	"""
 	ExtDataTestExt description
 	"""
 	def __init__(self, ownerComp):
-
-		ObjectData.__init__(self)
 
 		self.ownerComp = ownerComp
 		
@@ -23,14 +20,11 @@ class ExtDataTestExt(ObjectData):
 		self.B = 0
 		self.C = 1
 		self.D = 2
-
-		self.TestFunctionAttr = self.testFunc
-		self.TestFunctionDict = {'test_func': self.testFunc}
-		self.TestFunctionList = [self.testFunc]
+		
 		
 	def testFunc(self):
 
-		print('This is a test function')
+		print('This is a test function')		
 
 	@property
 	def Floatpar(self):

@@ -27,18 +27,21 @@ class ParPropertyTest():
 		# create par property for Floatpar parameter and specify get callback function
 		# can also override property set in IDF.createParProperties()
 		# IDF.createParProperty(self, 'Floatpar', 
-		#  							getCallback=self.Floatpar_get)
+		#  							getterCallback=self.Floatpar_get)
 
 		# IDF.createParProperty(self, 'Floatpar',
-		# 							setCallback=self.Floatpar_set)
+		# 							setterCallback=self.Floatpar_set)
 
 		# IDF.createParProperty(self, 'Floatpar',
-		# 							postSetCallback=self.Floatpar_postSet)
+		# 							postSetterCallback=self.Floatpar_postSet)
 		
-		# IDF.createParProperty(self, 'Floatpar', 
-		#  							getCallback=self.Floatpar_get,
-		# 							setCallback=self.Floatpar_set,
-		# 							postSetCallback=self.Floatpar_postSet)
+		IDF.createParProperty(self, 'Floatpar', 
+		 							getterCallback=self.Floatpar_get,
+									setterCallback=self.Floatpar_set,
+									postSetterCallback=self.Floatpar_postSet)
+
+
+		IDF.createParCallbacksLookup(self, ['Floatpar', 'Menu'])						
 
 	# custom par property callbacks
 	# all callbacks need a 'parName' and a 'value' argument
@@ -53,14 +56,21 @@ class ParPropertyTest():
 		# input value is passed to this function, then the returned value
 		# of this callback sets the par.
 		
-		print('Custom Set callback:\t\t', parName, 'is being set to 4 +', value)
+		print('Custom Set callback:\t\t', parName, 'is being set to 4 +', value, '(4 + input value)')
 
 		value += 4
 
 		return value
 
 	def Floatpar_postSet(self, parName, value):
-		# this function get it's value post setCallback and post set par
+		# this function get it's value post setterCallback and post set par
 		# since the par has already been set there is no need to return anything
 		print('Custom Post Set callback:\t', parName, 'has been set to:', value)
 
+	def Floatpar_parCallback(self, par):
+
+		print(par.name, 'is being set to:', par.eval(), '(printed from parCallback)')
+
+	def Menu_parCallback(self, par):
+
+		print(par.name, 'is being set to:', par.eval(), '(printed from parCallback)')
