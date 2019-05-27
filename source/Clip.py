@@ -8,16 +8,21 @@ class Clip(ObjectData):
 		ObjectData.__init__(self)
 		self.ownerComp = ownerComp
 
+		self.__FILTER_GET_ATTR__ = ['clipCallbacks']
+
+
 		# create par propertities for all customPars
-		IDF.createParProperties(self)
+		IDF.createParProperties(self, printInfo=True)
 		IDF.createParProperty(self, 'Play',
 									setterCallback=self.Play_set)
 
-		self.ParCallbacks = IDF.getParCallbacksLookup(self, 
-							parNames=['Play', 'Start'])	
+		self.ParCallbacks = IDF.getParCallbacksLookup(self,
+							parNames=['Play', 'Start'])
 
 		if self.Callbacksdat:
 			self.clipCallbacks = self.Callbacksdat.module
+
+
 
 	def Start_parCallback(self, par):
 
@@ -40,5 +45,5 @@ class Clip(ObjectData):
 		if type(value) == type(self.ownerComp.par.Play):
 			print('\tPlay_postSet called from Play_parCallback')
 
-		print('\tPlay has been set to:', value)	
+		print('\tPlay has been set to:', value)
 

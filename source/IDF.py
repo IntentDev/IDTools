@@ -2,7 +2,6 @@
 
 def createParProperty(inst, name, getterCallback=None, 
 						setterCallback=None, postSetterCallback=None):
-	print('createParProperty:', name)
 
 	if getterCallback or setterCallback or postSetterCallback:		
 		createParPropCallbacks(inst, name, getterCallback,
@@ -47,13 +46,20 @@ def createParPropCallbacks(inst, name, getterCallback,
 	setattr(inst.__class__, name, property(getter, setter))
 
 def createParProperties(inst, pars=None, filterPars=[],
-						customPars=True, builtinPars=False):
+						customPars=True, builtinPars=False,
+						printInfo=False):
+
+	if printInfo:
+		print('\nCreateParProperties in:', inst.ownerComp.path)
 
 	if pars:
 		for name in parNames:
 		
 			if name not in filterPars:
 				createParProperty(inst, name)
+
+				if printInfo:
+					print('\t\tcreated ParProperty:\t', name)
 
 	else:
 
@@ -70,6 +76,9 @@ def createParProperties(inst, pars=None, filterPars=[],
 			
 			if par.tupletName not in filterPars:
 				createParProperty(inst, par.name)
+
+				if printInfo:
+					print('\t\tcreated ParProperty:\t', par.name)
 
 def getParCallbacksLookup(inst, parNames=[]):
 

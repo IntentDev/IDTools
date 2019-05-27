@@ -1,51 +1,54 @@
 class ObjectData:
-	'''
-	Inherit ObjectData in an extension or class
+
+	# Inherit ObjectData in an extension or class
 	
-	Use GetAttrs() to return a JSON or TD storage serializable dict of all 
-	the attributes of the extension/class inheriting ObjectData. 
-	All attributes are converted to dicts with '_attr_val', '_attr_type' 
-	and '_attr_set' keys. Non-serializable attributes ie. instances
-	of non-base types (float, int, str, list etc...), lists, dicts or 
-	tuples of non-base types and any combination of the above are all 
-	converted. For example:
+	# Use GetAttrs() to return a JSON or TD storage serializable dict of all 
+	# the attributes of the extension/class inheriting ObjectData. 
+	# All attributes are converted to dicts with '_attr_val', '_attr_type' 
+	# and '_attr_set' keys. Non-serializable attributes ie. instances
+	# of non-base types (float, int, str, list etc...), lists, dicts or 
+	# tuples of non-base types and any combination of the above are all 
+	# converted. For example:
 
-		- float -> attrDict
-		- custom object -> attrDict
-		- list (of floats, ints, strings, custom objects etc..) -> list of attrDicts
-		- dict (of floats, ints, strings, custom objects etc..) -> dict of attrDicts
-		- list of lists or dicts -> list of lists or dicts of attrDicts -> attrDicts
-			of all sub objects (infinitely deep)
-		- attribute of custom objects that is also a custom object -> attrDict -> attrDict
-			also infinitely deep (at least to memory constraints)
-		- properties -> propery attrDict containing property data attrDict
-		- td.op -> OP attrDict which contains a string of the op path
-		- td.op.par -> Par attrDict which contains various par attributes in 
-			which only owner.path and par.name are being used in SetAttrs()
-		- all other td and tdu types are filterd and not added to attrsDict 
-			at this time. (still need to fliter a few other td built in base 
-			classes such as Project and UI Class)
-			- For types such as tdu.Matrix or tdu.Vector use the .vals 
-				member in a property to get and set the actual data.
+	# 	- float -> attrDict
+	# 	- custom object -> attrDict
+	# 	- list (of floats, ints, strings, custom objects etc..) -> list of attrDicts
+	# 	- dict (of floats, ints, strings, custom objects etc..) -> dict of attrDicts
+	# 	- list of lists or dicts -> list of lists or dicts of attrDicts -> attrDicts
+	# 		of all sub objects (infinitely deep)
+	# 	- attribute of custom objects that is also a custom object -> attrDict -> attrDict
+	# 		also infinitely deep (at least to memory constraints)
+	# 	- properties -> propery attrDict containing property data attrDict
+	# 	- td.op -> OP attrDict which contains a string of the op path
+	# 	- td.op.par -> Par attrDict which contains various par attributes in 
+	# 		which only owner.path and par.name are being used in SetAttrs()
+	# 	- all other td and tdu types are filterd and not added to attrsDict 
+	# 		at this time. (still need to fliter a few other td built in base 
+	# 		classes such as Project and UI Class)
+	# 		- For types such as tdu.Matrix or tdu.Vector use the .vals 
+	# 			member in a property to get and set the actual data.
 
-	Use GetAttrs() to return a JSON or TD storage serializable dict then
-	dump to JSON or store in an op. Then use SetAttrs(yourAttrsDataDict) to set all
-	the attributes of either the same instance or another instance of the same
-	class/extension. 
+	# Use GetAttrs() to return a JSON or TD storage serializable dict then
+	# dump to JSON or store in an op. Then use SetAttrs(yourAttrsDataDict) to set all
+	# the attributes of either the same instance or another instance of the same
+	# class/extension. 
 	
-	With keeping in mind that properties are slightly different than attributes
-	you can even create empty an instance of a nearly empty class and fill it
-	with attributes that did not previously exist in that instance. 
+	# With keeping in mind that properties are slightly different than attributes
+	# you can even create empty an instance of a nearly empty class and fill it
+	# with attributes that did not previously exist in that instance. 
 
-	Should be able to work without inheritance but that has not been tested,
-	for now it is meant to be used as an inherited base class.
+	# Should be able to work without inheritance but that has not been tested,
+	# for now it is meant to be used as an inherited base class.
 
-	Use self.__FILTER_GET_ATTR__ = (tuple of names(str) of attributes) that you 
-	do not want to be added to the attrsDict
+	# Use self.__FILTER_GET_ATTR__ = (tuple of names(str) of attributes) that you 
+	# do not want to be added to the attrsDict
 
-	Use self.__FILTER_SET_ATTR__ = (tuple of names(str) of attributes) that you 
-	do not want to be set in the object that could exist in the attrDict	
-	'''
+	# Use self.__FILTER_SET_ATTR__ = (tuple of names(str) of attributes) that you 
+	# do not want to be set in the object that could exist in the attrDict	
+	
+	# todo:
+	# could add import module case if needed and practical 
+
 	def __init__(self):
 
 		self.__FILTER_GET__ = (	'__FILTER_GET__', '__FILTER_SET__',
@@ -60,6 +63,8 @@ class ObjectData:
 		# inst is shortform for classInstance
 		if not inst:
 			inst = self
+
+		# try:
 
 		# get instance attributes
 		attrDict = {}
@@ -80,25 +85,31 @@ class ObjectData:
 				createKey = (createKey and
 							attrName not in inst.__FILTER_GET_ATTR__)
 
-			if attrVal.__class__.__module__ not in ('td', 'tdu'):
-				if not self.isSerializable(attrVal):
-					
-					attrVal = self.makeSerializable(attrVal, returnDict=False)
-				
-			elif hasattr(attrVal, 'OPType'):
-				attrVal = attrVal.path
-				typeName = 'OP'
-				#attrSet = attrName not in ('ownerComp')
+			if createKey:
+				if attrVal.__class__.__module__ not in ('td', 'tdu'):
+					if not self.isSerializable(attrVal):
+						
+						try:
+							attrVal = self.makeSerializable(attrVal, returnDict=False)
+						except:
+							print('Error making attribute:', '"'+attrName+'"', 'containing:', attrVal, 'serializable')
+							print('Add attribute:', '"'+attrName+'"', 'to self.__FILTER_GET_ATTR__ list to avoid error.\n')
+							raise		
 
-			elif attrVal.__class__ == Par:
-				attrVal = self.makePar(attrVal)
+				elif hasattr(attrVal, 'OPType'):
+					attrVal = attrVal.path
+					typeName = 'OP'
+					#attrSet = attrName not in ('ownerComp')
 
-			else: createKey = False
+				elif attrVal.__class__ == Par:
+					attrVal = self.makePar(attrVal)
 
-			if createKey:		
-				attrDict[attrName] = {'_attr_val': attrVal, 
-									'_attr_type': typeName, 
-									'_attr_set': attrSet}
+				else: createKey = False
+
+				if createKey:		
+					attrDict[attrName] = {'_attr_val': attrVal, 
+										'_attr_type': typeName, 
+										'_attr_set': attrSet}
 
 
 
@@ -106,7 +117,7 @@ class ObjectData:
 		if hasattr(inst.__class__, '__dict__'):
 			for attrName in inst.__class__.__dict__.keys():
 				if attrName[:2] != '__':
-
+					
 					# check for static or class method
 					attrVal = getattr(inst.__class__, attrName)
 					if not callable(attrVal):
@@ -129,10 +140,15 @@ class ObjectData:
 							else:
 								# get property
 								attrSet = attrVal.fset != None
-
+								
 								if not self.isSerializable(attrVal.__get__(inst)):
-									attrVal = self.makeSerializable(getattr(inst, attrName), 
+									try:
+										attrVal = self.makeSerializable(getattr(inst, attrName), 
 																	inputAttrSet=attrSet)
+									except:
+										print('Error making attribute:', '"'+attrName+'"', 'containing:', attrVal, 'serializable')
+										print('Add attribute:', '"'+attrName+'"', 'to self.__FILTER_GET_ATTR__ list to avoid error.\n')
+										raise									
 								else:
 									attrVal = getattr(inst, attrName)
 
@@ -163,6 +179,12 @@ class ObjectData:
 
 		return attrDict
 
+		# except:
+
+		# 	print('\nError in GetAttrs() in attribute containing:', type(inst), inst)
+		# 	print('Cannot make attribute serializable, add attribute name to self.__FILTER_GET_ATTR__ list to avoid error.\n')
+		# 	raise
+
 	def isSerializable(self, data):
 		
 		if data is None:
@@ -182,6 +204,8 @@ class ObjectData:
 
 	def makeSerializable(self, inputVal, inputTypeName=None, 
 							inputAttrSet=True, returnDict=True):
+
+		typeNameOverride = None
 
 		if isinstance(inputVal, (list, tuple)):
 			l = []
@@ -204,6 +228,13 @@ class ObjectData:
 			
 			attrVal = inputVal.__name__
 
+		elif hasattr(inputVal, 'OPType'):
+			attrVal = inputVal.path
+			typeNameOverride = 'OP'
+
+		elif inputVal.__class__ == Par:
+			attrVal = self.makePar(inputVal)
+			typeNameOverride = 'Par'
 		else:
 			attrVal = self.GetAttrs(inst=inputVal)
 		
@@ -214,6 +245,9 @@ class ObjectData:
 
 			else:
 				typeName = inputTypeName
+
+			if typeNameOverride:
+				typeName = typeNameOverride
 
 			attrVal = {'_attr_val': attrVal, 
 						'_attr_type': typeName, 
