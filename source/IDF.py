@@ -59,7 +59,7 @@ def createParProperties(inst, pars=None, filterPars=[],
 				createParProperty(inst, name)
 
 				if printInfo:
-					print('\t\tcreated ParProperty:\t', name)
+					print('\t\tParProperty:\t', name)
 
 	else:
 
@@ -78,7 +78,7 @@ def createParProperties(inst, pars=None, filterPars=[],
 				createParProperty(inst, par.name)
 
 				if printInfo:
-					print('\t\tcreated ParProperty:\t', par.name)
+					print('\t\tParProperty:\t', par.name)
 
 def getParCallbacksLookup(inst, parNames=[]):
 
