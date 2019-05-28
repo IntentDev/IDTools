@@ -31,8 +31,11 @@ class ObjectData:
 	# Use GetAttrs() to return a JSON or TD storage serializable dict then
 	# dump to JSON or store in an op. Then use SetAttrs(yourAttrsDataDict) to set all
 	# the attributes of either the same instance or another instance of the same
-	# class/extension. 
-	
+	# class/extension.
+
+	# Use SetAttrs() to take a previously saved attrDict and set all the attributes
+	# of a class instance/extension with the value saved in the attrDict.  
+
 	# With keeping in mind that properties are slightly different than attributes
 	# you can even create empty an instance of a nearly empty class and fill it
 	# with attributes that did not previously exist in that instance. 
@@ -90,9 +93,9 @@ class ObjectData:
 					if not self.isSerializable(attrVal):
 						
 						try:
-							attrVal = self.makeSerializable(attrVal, returnDict=False)
+							attrVal = self.serialize(attrVal, returnDict=False)
 						except:
-							print('Error making attribute:', '"'+attrName+'"', 'containing:', attrVal, 'serializable')
+							print('Error serializing attribute:', '"'+attrName+'"', 'containing:', attrVal)
 							print('Add attribute:', '"'+attrName+'"', 'to self.__FILTER_GET_ATTR__ list to avoid error.\n')
 							raise		
 
@@ -101,16 +104,19 @@ class ObjectData:
 					typeName = 'OP'
 					#attrSet = attrName not in ('ownerComp')
 
-				elif attrVal.__class__ == Par:
-					attrVal = self.makePar(attrVal)
+				# Par class is not found in td, tdu module when instance attribute
+				# no need for this, par is handled in self.serialize()
+				# elif attrVal.__class__ == Par:
+				# 	attrVal = self.makePar(attrVal)
 
+				# add more td, tdu types here
+		
 				else: createKey = False
 
 				if createKey:		
 					attrDict[attrName] = {'_attr_val': attrVal, 
 										'_attr_type': typeName, 
 										'_attr_set': attrSet}
-
 
 
 		# get class attributes that are not callable
@@ -133,7 +139,7 @@ class ObjectData:
 
 							if type_ != property:
 								if not self.isSerializable(attrVal):
-									attrVal = self.makeSerializable(attrVal, returnDict=False)
+									attrVal = self.serialize(attrVal, returnDict=False)
 								else:
 									attrVal = getattr(inst, attrName)
 
@@ -143,10 +149,10 @@ class ObjectData:
 								
 								if not self.isSerializable(attrVal.__get__(inst)):
 									try:
-										attrVal = self.makeSerializable(getattr(inst, attrName), 
+										attrVal = self.serialize(getattr(inst, attrName), 
 																	inputAttrSet=attrSet)
 									except:
-										print('Error making attribute:', '"'+attrName+'"', 'containing:', attrVal, 'serializable')
+										print('Error serializing attribute:', '"'+attrName+'"', 'containing:', attrVal)
 										print('Add attribute:', '"'+attrName+'"', 'to self.__FILTER_GET_ATTR__ list to avoid error.\n')
 										raise									
 								else:
@@ -156,8 +162,10 @@ class ObjectData:
 							attrVal = attrVal.path
 							typeName = 'OP'
 
+						# Par class is found in td when class attribute...
 						elif attrVal.__class__ == Par:
 							attrVal = self.makePar(attrVal)
+							typeName = 'Par'
 
 						else: createKey = False
 
@@ -190,7 +198,7 @@ class ObjectData:
 		if data is None:
 			return True
 
-		elif isinstance(data, (bool, int, float, str, type(None))):
+		elif isinstance(data, (bool, int, float, str)):
 			return True
 
 		elif isinstance(data, (tuple, list)):
@@ -202,7 +210,7 @@ class ObjectData:
 		
 		return False
 
-	def makeSerializable(self, inputVal, inputTypeName=None, 
+	def serialize(self, inputVal, inputTypeName=None, 
 							inputAttrSet=True, returnDict=True):
 
 		typeNameOverride = None
@@ -260,12 +268,12 @@ class ObjectData:
 		typeName = type_.__name__
 		
 		if isinstance(inputVal, (list, tuple)):
-			outputVal = self.makeSerialList(inputVal)
+			outputVal = self.serializeList(inputVal)
 		
 		elif isinstance(inputVal, dict):
-			outputVal = self.makeSerialDict(inputVal)
+			outputVal = self.serializeDict(inputVal)
 
-		elif type(inputVal).__name__ == 'method':
+		elif typeName == 'method':
 			outputVal = inputVal.__name__
 
 		else:
@@ -277,11 +285,11 @@ class ObjectData:
 
 		return attrDict
 
-	def makeSerialList(self, inputList):
+	def serializeList(self, inputList):
 
 		outputList = []
 		for inputVal in inputList:
-			outputVal = self.makeSerializable(inputVal)
+			outputVal = self.serialize(inputVal)
 			outputList.append(outputVal)
 		
 		if isinstance(inputList, tuple):
@@ -289,11 +297,11 @@ class ObjectData:
 		
 		return outputList
 
-	def makeSerialDict(self, inputDict):
+	def serializeDict(self, inputDict):
 
 		outputDict = {}
 		for inputKey, inputVal in inputDict.items():
-			outputVal = self.makeSerializable(inputVal)
+			outputVal = self.serialize(inputVal)
 			outputDict[inputKey] = outputVal
 		
 		return outputDict
@@ -320,22 +328,21 @@ class ObjectData:
 			
 
 		for attrName, attrVal in attrDict.items():
-			if self.isBasicTypes(attrVal):
-				if attrVal['_attr_set'] and attrName not in self.__FILTER_SET__:
-					
-					if attrVal['_attr_type'] == 'tuple':
-						attrVal['_attr_val'] = tuple(attrVal['_attr_val'])
-					
-					setattr(self.__INST__, attrName, attrVal['_attr_val'])
 
-			else:
-				attr = self.makeNotBasicType(attrVal)
+			if attrVal['_attr_set'] and attrName not in self.__FILTER_SET__:
 
-				if (attr != '__noSet__' and 
-					attrVal['_attr_set'] and 
-					attrName not in self.__FILTER_SET__):
+				if self.isBasicTypes(attrVal):
+				
+						if attrVal['_attr_type'] == 'tuple':
+							attrVal['_attr_val'] = tuple(attrVal['_attr_val'])
+						
+						setattr(self.__INST__, attrName, attrVal['_attr_val'])
 
-					setattr(self.__INST__, attrName, attr)
+				else:
+					attr = self.makeNotBasicType(attrVal)
+
+					if (attr != '__noSet__'):
+						setattr(self.__INST__, attrName, attr)
 
 		delattr(self, '__INST__')
 
@@ -384,16 +391,17 @@ class ObjectData:
 			return getattr(OP.par, attrVal['_attr_val']['name'])
 
 		else:
-			# make returned attribute of type specified
+			# create instance type specified
 			attr = type(attrVal['_attr_type'], (), {})()
+
 			for key, val in attrVal['_attr_val'].items():
 
 				if val['_attr_type'] in ('int', 'float', 'str', 'bool', 'NoneType'):
-					# set attribute of returned attribute
+					# set attribute of newly created attribute
 					setattr(attr, key, val['_attr_val'])
 				
 				else:
-					# set attribute of returned attribute
+					# set attribute of attribute
 					setattr(attr, key, self.makeNotBasicType(val))
 					
 			return attr

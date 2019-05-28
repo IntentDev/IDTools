@@ -19,12 +19,12 @@ class MyClass(ObjectData):
 	d = Position()
 	StestOP = op('level1')
 	StestPar = StestOP.par.opacity
-	#Spos3 = Position()
-	#SposList = [Position(), Position()]
-	#SposTuple = (Position(), Position())
-	#SposDict = {'pos1': Position(), 'pos2': Position()}
-	#SposDict2 = {'pos1': SposList, 'pos2': SposTuple}
-	#SposList2 = [SposTuple, SposDict2]	
+	# Spos3 = Position()
+	# SposList = [Position(), Position()]
+	# SposTuple = (Position(), Position())
+	# SposDict = {'pos1': Position(), 'pos2': Position()}
+	# SposDict2 = {'pos1': SposList, 'pos2': SposTuple}
+	# SposList2 = [SposTuple, SposDict2]	
 	
 
 	def __init__(self):
@@ -38,7 +38,7 @@ class MyClass(ObjectData):
 		self.__FILTER_SET_ATTR__ = ('C', 'D')
 
 		self.a = 0 # instance attribute
-		self.b = 1
+		self.b = 1.0
 		self.l = [0, 1, 2]
 		self.T = (0, 1, 2)
 		self.basicDict = {'a': 0, 'b': 1, 'c': 2}
@@ -102,7 +102,7 @@ inst1 = MyClass()
 
 # set some values in inst1
 inst1.a = 5
-inst1.b = 6
+inst1.b = 6.0
 inst1.p =  Position()
 inst1.p.x = 4
 inst1.pos.x = 3.0
