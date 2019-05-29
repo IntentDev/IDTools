@@ -45,14 +45,14 @@ def createParPropCallbacks(inst, name, getterCallback,
 
 	setattr(inst.__class__, name, property(getter, setter))
 
-def createParProperties(inst, pars=None, filterPars=[],
+def createParProperties(inst, parNames=None, filterPars=[],
 						customPars=True, builtinPars=False,
 						printInfo=False):
 
 	if printInfo:
 		print('\nCreateParProperties in:', inst.ownerComp.path)
 
-	if pars:
+	if parNames:
 		for name in parNames:
 		
 			if name not in filterPars:
@@ -93,3 +93,13 @@ def getParCallbacksLookup(inst, parNames=[]):
 	return parCallbacks
 
 
+class IDPars(object):
+
+	def __init__(self, ownerComp, parNames):
+
+		self.ownerComp = ownerComp
+		self.parNames = parNames
+		createParProperties(self, parNames=parNames, printInfo=True)
+
+		self.ParCallbacks = getParCallbacksLookup(
+			self, parNames=parNames)
