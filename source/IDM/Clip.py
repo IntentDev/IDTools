@@ -1,7 +1,7 @@
 import ObjectData as OD
 ObjectData = OD.ObjectData
 
-IDF = op.Modules.op('IDF').module
+IDF = op.IDM.op('IDF').module
 
 class Clip(ObjectData):
 	def __init__(self, ownerComp):

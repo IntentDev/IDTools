@@ -1,5 +1,5 @@
-IDC = op.Modules.op('IDC').module
-IDF = op.Modules.op('IDF').module
+IDC = op.IDM.op('IDC').module
+IDF = op.IDM.op('IDF').module
 Clip = IDC.Clip
 
 class ClipExt(Clip):
