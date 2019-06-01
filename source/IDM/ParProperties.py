@@ -1,115 +1,100 @@
 class ParProperty(object):
 
-	def __init__(	self, obj, parName, parGroup=None, fget=None, 
-					fset=None, fpostSet=None, fdelete=None, 
-					fparCallback=None, doc=None):
+	def __init__(	self, obj, name, pargroup, fget=None, 
+					fset=None, fpostset=None, fdelete=None, 
+					fcallback=None, doc=None):
 
 		self.obj = obj
-		self.parName = parName
+		self.name = name
+		self.pargroup = pargroup
 		self.fget = fget
 		self.fset = fset
-		self.fpostSet = fpostSet
+		self.fpostset = fpostset
 		self.fdelete = fdelete
-		self.fparCallback = fparCallback
-
-		if parGroup:
-			if hasattr(obj, parGroup):
-				self.parGroup = getattr(obj, parGroup)
-		else:
-			self.parGroup = None
+		self.fcallback = fcallback
 
 		if doc is None and fget is not None:
 			doc = fget.__doc__
 		self.__doc__ = doc
-
-
 
 	def __get__(self, obj, objType=None):
 
 		if obj is None:
 			return self
 
-		value = getattr(obj.ownerComp.par, self.parName).eval()
+		value = getattr(obj.ownerComp.par, self.name).eval()
 
-		execGetCallback = True
-		if self.parGroup:
-			execGetCallback = self.parGroup.execGetCallback
-
-		if self.fget is not None and execGetCallback:
+		if self.fget is not None and self.pargroup.execGetCallback:
 			self.fget(value)
 
 		return value
 
 	def __set__(self, obj, value):
 
-		execSetCallback = True
-		execPostSetCallback = True
-		if self.parGroup:
-			execSetCallback = self.parGroup.execSetCallback
-			execPostSetCallback = self.parGroup.execPostSetCallback
-		
-
-		if self.fset is not None and execSetCallback:
+		if self.fset is not None and self.pargroup.execSetCallback:
 			value = self.fset(value)
 		
-		setattr(obj.ownerComp.par, self.parName, value)
+		setattr(obj.ownerComp.par, self.name, value)
 	
-		if self.fpostSet is not None and execPostSetCallback:
-			self.fpostSet(value)
+		if self.fpostset is not None and self.pargroup.execPostSetCallback:
+			self.fpostset(value)
 
 	def __delete__(self, obj):
-		print(	'ParProperty:', self.parName, 'has been deleted')
+
+		print(	'ParProperty:', self.name, 'has been deleted')
 		if self.fdelete is not None:
 			self.fdelete(obj)
 
-	def parCallback(self, par):
+	def callback(self, par):
 
-		if self.fparCallback is not None:
-			self.fparCallback(par)
+		if self.fcallback is not None:
+			self.fcallback(par)
 
-def parProperty(obj, parName, parGroup=None, 
-				getter=None, setter=None, postSetter=None,
-				deleter=None):
+def parProperty(obj, name, parGroup=None, ownerComp=None, 
+				fGet=None, fSet=None, fPostSet=None,
+				deleter=None, fCallback=None):
 
 	if not parGroup:
 		parGroup = 'PARS'
 
 	if not hasattr(obj, parGroup):
-		setattr(obj, parGroup, ParGroup([parName]))
+		setattr(obj, parGroup, ParGroup(obj, ownerComp=ownerComp))
 
-	else:
-		parGroupAttr = getattr(obj, parGroup)
-		if parName not in parGroupAttr.parNames:
-			parGroupAttr.parNames.append(parName)
+	parGroup = getattr(obj, parGroup)
 
 	parProperty = ParProperty(
-		obj, parName, parGroup=parGroup,
-		fget=getter, fset=setter, fpostSet=postSetter,
+		obj, name, pargroup=parGroup,
+		fget=fGet, fset=fSet, fpostset=fPostSet,
 		fdelete=deleter)
 
-	setattr(obj.__class__, parName, parProperty)
+	setattr(obj.__class__, name, parProperty)
+	parp = getattr(obj.__class__, name)
+	parGroup.appendPar(name, parp, fcallback=fCallback)
 
-	return getattr(obj.__class__, parName)
+	return parp
 
 
 def createParProperties(
-		inst, parNames=None, parGroup=None, filterPars=[], 
+		obj, parNames=None, parGroup=None, filterPars=[], 
 		customPars=True, builtinPars=False, printInfo=False,
-		setPropertyAttr=True):
+		setPropertyAttr=True, ownerComp=None):
 
 	if printInfo:
-		print('\nCreateParProperties in:', inst.ownerComp.path)
+		print('\nCreateParProperties in:', obj.ownerComp.path)
 
+	if not parGroup:
+		parGroup = 'PARS'
+
+	if not hasattr(obj, parGroup):
+		setattr(obj, parGroup, ParGroup(obj, ownerComp=ownerComp))
+		
 	if parNames:
-		parProperties = []
 		for name in parNames:
 		
 			if name not in filterPars:
-				parProp = parProperty(inst, name, parGroup=parGroup)
+				parProp = parProperty(obj, name, parGroup=parGroup)
 				if setPropertyAttr:
-					setattr(inst, parName + 'Parp', parProp)	
-
-				parProperties.append(parProp)
+					setattr(obj, name + 'Parp', parProp)	
 
 				if printInfo:
 					print('\t\tParProperty:\t', name)
@@ -117,37 +102,127 @@ def createParProperties(
 	else:
 
 		pars = []
-		if customPars and builtinPars: pars = inst.ownerComp.pars()
-		elif customPars: pars = inst.ownerComp.customPars
+		if customPars and builtinPars: pars = obj.ownerComp.pars()
+		elif customPars: pars = obj.ownerComp.customPars
 		elif builtinPars: 
-			for par in inst.ownerComp.pars():
+			for par in obj.ownerComp.pars():
 				if not par.isCustom:
 					pars.append(par)
-				
-		parProperties = []
+
 		for par in pars:
 			
 			if par.tupletName not in filterPars:
-				parProp = parProperty(inst, par.name, parGroup=parGroup)
+				parProp = parProperty(obj, par.name, parGroup=parGroup)
 				if setPropertyAttr:
-					setattr(inst, par.name + 'Parp', parProp)	
-
-				parProperties.append(parProp)
+					setattr(obj, par.name + 'Parp', parProp)	
 
 				if printInfo:
 					print('\t\tParProperty:\t', par.name)
 
+	parg = getattr(obj, parGroup)					
+
+	return parg
+
+
+class Par(object):
+
+	def __init__(self, ownerComp, name, parp=None, fcallback=None):
+		self.name = name
+		self.par = getattr(ownerComp.par, name)
+		self.parp = parp
+		self._fcallback = fcallback
+	
+	@property
+	def fget(self):
+		return self.parp.fget
+	
+	@fget.setter
+	def fget(self, func):
+		self.parp.fget = func
+
+	@property
+	def fset(self):
+		return self.parp.fset
+	
+	@fset.setter
+	def fset(self, func):
+		self.parp.fset = func
+
+	@property
+	def fpostset(self):
+		return self.parp.fpostset
+	
+	@fpostset.setter
+	def fpostset(self, func):
+		self.parp.fpostset = func
+
+	@property
+	def fdelete(self):
+		return self.parp.fdelete
+	
+	@fdelete.setter
+	def fdelete(self, func):
+		self.parp.fdelete = func
+
+
+	################################################
+	# callback called in Par object - faster than property?
+	@property
+	def fcallback(self):
+		return self._fcallback
+	
+	@fcallback.setter
+	def fcallback(self, func):
+		self._fcallback = func
+
+	def callback(self, par):
+		if self._fcallback is not None:
+			self.fcallback(par)
+
+
+	################################################
+	# callback called in property - more consistent than internal call?
+	# @property
+	# def fcallback(self):
+	# 	return self.parp.fcallback
+	
+	# @fcallback.setter
+	# def fcallback(self, func):
+	# 	self.parp.fcallback = func	
+
+	# @property
+	# def callback(self):
+	# 	return self.parp.callback
+
 
 class ParGroup(object):
 
-	def __init__(self, parNames=[]):
+	def __init__(self, obj, parNames=[], ownerComp=None):
 
+		if not ownerComp:
+			if hasattr(obj, 'ownerComp'):
+				ownerComp = obj.ownerComp
+			else:
+				raise AttributeError (	'Extension does not have "ownerComp" ' +
+										'attribute, specify extension ownerComp ' +
+										'attribute via ownerComp argument')
+
+		self.ownerComp = ownerComp
 		self.parNames = parNames
 		self.execCallbacks = True
 		self._execGetCallback = True
 		self._execSetCallback = True
 		self._execPostSetCallback = True
 		self._execParCallback = True
+
+	def appendPar(self, name, parp=None, fcallback=None):
+
+		par = Par(self.ownerComp, name, parp=parp, fcallback=fcallback)
+		setattr(self, par.name, par)
+
+		if name not in self.parNames:
+			self.parNames.append(name)
+
 
 	@property
 	def execGetCallback(self):

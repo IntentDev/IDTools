@@ -79,9 +79,9 @@ class ObjectData:
 			createKey = (	attrName[:13] != '_ObjectData__' and	
 							attrName[:2] != '__' and
 							attrName != '__FILTER_GET__' and
-							attrName not in self.__FILTER_GET__
+							attrName not in self.__FILTER_GET__ and
+							typeName not in ['ParProperty', 'ParGroup']
 						)	
-
 
 			if hasattr(inst, '__FILTER_GET_ATTR__'):
 				
@@ -97,7 +97,8 @@ class ObjectData:
 						except:
 							print('Error serializing attribute:', '"'+attrName+'"', 'containing:', attrVal)
 							print('Add attribute:', '"'+attrName+'"', 'to self.__FILTER_GET_ATTR__ list to avoid error.\n')
-							raise		
+							raise
+							
 
 				elif hasattr(attrVal, 'OPType'):
 					attrVal = attrVal.path
@@ -112,6 +113,8 @@ class ObjectData:
 				# add more td, tdu types here
 		
 				else: createKey = False
+
+				createKey = createKey		
 
 				if createKey:		
 					attrDict[attrName] = {'_attr_val': attrVal, 
@@ -137,14 +140,14 @@ class ObjectData:
 							attrSet = False
 							
 
-							if type_ != property:
+							if type_ != property and typeName != 'ParProperty':
 								if not self.isSerializable(attrVal):
 									attrVal = self.serialize(attrVal, returnDict=False)
 								else:
 									attrVal = getattr(inst, attrName)
 
 							else:
-								# get property
+								# get property or ParProperty
 								attrSet = attrVal.fset != None
 								
 								if not self.isSerializable(attrVal.__get__(inst)):
@@ -157,6 +160,8 @@ class ObjectData:
 										raise									
 								else:
 									attrVal = getattr(inst, attrName)
+
+							
 
 						elif hasattr(attrVal, 'OPType'):
 							attrVal = attrVal.path
@@ -172,7 +177,8 @@ class ObjectData:
 						createKey = (	createKey and	
 										attrName[:2] != '__' and
 										attrName != '__FILTER_GET__' and
-										attrName not in self.__FILTER_GET__
+										attrName not in self.__FILTER_GET__ and
+										attrVal != '__noGet__'
 									)			
 
 						if hasattr(inst, '__FILTER_GET_ATTR__'):		
@@ -214,6 +220,7 @@ class ObjectData:
 							inputAttrSet=True, returnDict=True):
 
 		typeNameOverride = None
+		typeName = type(inputVal).__name__
 
 		if isinstance(inputVal, (list, tuple)):
 			l = []
@@ -232,7 +239,7 @@ class ObjectData:
 
 			attrVal = d
 
-		elif type(inputVal).__name__ == 'method':
+		elif typeName == 'method':
 			
 			attrVal = inputVal.__name__
 
@@ -243,6 +250,7 @@ class ObjectData:
 		elif inputVal.__class__ == Par:
 			attrVal = self.makePar(inputVal)
 			typeNameOverride = 'Par'
+		
 		else:
 			attrVal = self.GetAttrs(inst=inputVal)
 		
@@ -318,6 +326,9 @@ class ObjectData:
 
 		return outputPar
 
+
+					
+
 	def SetAttrs(self, attrDict, setProperty=True, classInstance=None):
 
 		self.__INST__ = [self, classInstance][int(classInstance != None)]		
@@ -374,7 +385,7 @@ class ObjectData:
 		elif attrVal['_attr_type'] == 'dict':			
 			return self.makeDict(attrVal)
 		
-		elif attrVal['_attr_type'] == 'property':
+		elif attrVal['_attr_type'] in ['property', 'ParProperty']:
 			if setProperty:				
 				return self.makeProperty(attrVal)
 
