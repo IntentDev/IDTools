@@ -22,6 +22,8 @@ class ParProperty(object):
 			doc = fget.__doc__
 		self.__doc__ = doc
 
+
+
 	def __get__(self, obj, objType=None):
 
 		if obj is None:
@@ -60,6 +62,11 @@ class ParProperty(object):
 		if self.fdelete is not None:
 			self.fdelete(obj)
 
+	def parCallback(self, par):
+
+		if self.fparCallback is not None:
+			self.fparCallback(par)
+
 def parProperty(obj, parName, parGroup=None, 
 				getter=None, setter=None, postSetter=None,
 				deleter=None):
@@ -73,38 +80,36 @@ def parProperty(obj, parName, parGroup=None,
 	else:
 		parGroupAttr = getattr(obj, parGroup)
 		if parName not in parGroupAttr.parNames:
-			parGroupAttr.parNames.append(parName)	
+			parGroupAttr.parNames.append(parName)
+
+	parProperty = ParProperty(
+		obj, parName, parGroup=parGroup,
+		fget=getter, fset=setter, fpostSet=postSetter,
+		fdelete=deleter)
+
+	setattr(obj.__class__, parName, parProperty)
+
+	return getattr(obj.__class__, parName)
 
 
-	setattr(obj.__class__, parName, 
-			ParProperty(obj, parName, parGroup=parGroup,
-						fget=getter, fset=setter, fpostSet=postSetter,
-						fdelete=deleter))
-
-def parPropGetter(obj, attr, func):
-	getattr(obj.__class__, attr).fget = func
-
-def parPropSetter(obj, attr, func):
-	getattr(obj.__class__, attr).fset = func
-
-def parPropPostSetter(obj, attr, func):
-	getattr(obj.__class__, attr).fpostSet = func
-
-def parPropDeleter(obj, attr, func):
-	getattr(obj.__class__, attr).fdelete = func
-
-def createParProperties(inst, parNames=None, parGroup=None, 
-						filterPars=[], customPars=True, 
-						builtinPars=False, printInfo=False):
+def createParProperties(
+		inst, parNames=None, parGroup=None, filterPars=[], 
+		customPars=True, builtinPars=False, printInfo=False,
+		setPropertyAttr=True):
 
 	if printInfo:
 		print('\nCreateParProperties in:', inst.ownerComp.path)
 
 	if parNames:
+		parProperties = []
 		for name in parNames:
 		
 			if name not in filterPars:
-				parProperty(inst, name, parGroup=parGroup)
+				parProp = parProperty(inst, name, parGroup=parGroup)
+				if setPropertyAttr:
+					setattr(inst, parName + 'Parp', parProp)	
+
+				parProperties.append(parProp)
 
 				if printInfo:
 					print('\t\tParProperty:\t', name)
@@ -119,11 +124,15 @@ def createParProperties(inst, parNames=None, parGroup=None,
 				if not par.isCustom:
 					pars.append(par)
 				
-
+		parProperties = []
 		for par in pars:
 			
 			if par.tupletName not in filterPars:
-				parProperty(inst, name, parGroup=parGroup)
+				parProp = parProperty(inst, par.name, parGroup=parGroup)
+				if setPropertyAttr:
+					setattr(inst, par.name + 'Parp', parProp)	
+
+				parProperties.append(parProp)
 
 				if printInfo:
 					print('\t\tParProperty:\t', par.name)
@@ -166,8 +175,8 @@ class ParGroup(object):
 
 	@property
 	def execParCallback(self):
-		return self._execPostSetCallback and self.execCallbacks
+		return self._execParCallback and self.execCallbacks
 
 	@execParCallback.setter
-	def execSetCallback(self, value):
+	def execParCallback(self, value):
 		self._execParCallback = value
