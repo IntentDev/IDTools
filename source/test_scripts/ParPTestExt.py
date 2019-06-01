@@ -11,18 +11,25 @@ class ParPTestExt():
 		# The component to which this extension is attached
 		self.ownerComp = ownerComp
 
-		# ParProps.parProperty(self, 'Float', parGroup='TEST1')
-		ParProps.parProperty(	self, 'Float', parGroup='TEST1',
-								getter=self.Floatpar_getter,
-								setter=self.Floatpar_setter,
-								postSetter=self.Floatpar_postSetter)
+		# create par propertities for all customPars
+		#IDF.createParProperties(self)
+
+		ParProps.parProperty(self, 'Float', parGroup='TEST1')
+		#self.__class__.Float.fset = self.Float_set
+		ParProps.parPropGetter(self, 'Float', self.Float_getter)
+		ParProps.parPropSetter(self, 'Float', self.Float_setter)
+		ParProps.parPropPostSetter(self, 'Float', self.Float_postSetter)
+		
+		# ParProps.parProperty(	self, 'Float', parGroup='TEST1',
+		# 						getter=self.Float_getter,
+		# 						setter=self.Float_setter,
+		# 						postSetter=self.Float_postSetter)
 
 		ParProps.parProperty(self, 'String', parGroup='TEST2')
+		delattr(self, 'String')
 
+		#self.TEST1.parExecSet = False
 
-
-		# create par propertities for all customPars
-		IDF.createParProperties(self)
 
 		# create par propertities for custom and builtin pars
 		# IDF.createParProperties(self, builtinPars=True)
@@ -52,47 +59,25 @@ class ParPTestExt():
 		# 							setterCallback=self.Floatpar_set,
 		# 							postSetterCallback=self.Floatpar_postSet)
 
-		# get (dict) used by a parexec to check whether a parCallback is present 
-		# and to be able to effeciently call it. For each name in the list a
-		# callback function named "`Parname`_parCallback" should exist.
-		# self.ParCallbacks = IDF.getParCallbacksLookup(self, 
-		# 					parNames=['Floatpar', 'Menu'])						
-
 	############################################################################
 	# custom ParProperty callbacks
-	# all callbacks need a 'parName' and 'value' arguments
-
-	def Floatpar_getter(self, parName, value):
+	# all callbacks need a 'value' argument
+	
+	def Float_getter(self, value):
 		# value is evaluated from par then passed callback
 		# then returned value from this callback is return by getter
-		print('Custom Get callback:\t\t', parName, 'has the value:', value)
-
+		print('Float Get callback:\t\t\tFloat par has the value:', value)
 		return value
 
-	def Floatpar_setter(self, parName, value):
+	def Float_setter(self, value):
 		# input value is passed to this function, then the returned value
 		# of this callback sets the par.
-		
-		print('Custom Set callback:\t\t', parName, 'is being set to 4 +', value, '(4 + input value)')
-
-		value += 4
-
+		print('Float Set callback:\t\t\tFloat par is being set to:', value)
 		return value
 
-	def Floatpar_postSetter(self, parName, value):
+	def Float_postSetter(self, value):
 		# this function get it's value post setterCallback and post set par
 		# since the par has already been set there is no need to return anything
-		print('Custom Post Set callback:\t', parName, 'has been set to:', value)
+		print('Float PostSet callback:\t\tFloat par has been set to:', value)
 
 
-	############################################################################		
-	# Par callbacks
-	# 		
-	def Floatpar_parCallback(self, par):
-
-		print(par.name, 'is being set to:', par.eval(), '(printed from parCallback)')
-		self.ownerComp.op('constant1').par.value0 = par.eval()
-
-	def Menu_parCallback(self, *args):
-
-		print(par.name, 'is being set to:', args[0].eval(), '(printed from parCallback)')

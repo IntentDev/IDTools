@@ -1,14 +1,20 @@
 class ParProperty(object):
 
-	def __init__(	self, parName, parGroup=None, fget=None, 
-					fset=None, fpostSet=None, doc=None):
+	def __init__(	self, obj, parName, parGroup=None, fget=None, 
+					fset=None, fpostSet=None, fdelete=None, doc=None):
 
+		self.obj = obj
 		self.parName = parName
 		self.fget = fget
 		self.fset = fset
 		self.fpostSet = fpostSet
-		self.fdel = None
-		self.parGroup = parGroup
+		self.fdelete = fdelete
+
+		if hasattr(obj, parGroup):
+			self.parGroup = getattr(obj, parGroup)
+		else:
+			self.parGroup = None
+
 		if doc is None and fget is not None:
 			doc = fget.__doc__
 		self.__doc__ = doc
@@ -20,40 +26,67 @@ class ParProperty(object):
 
 		value = getattr(obj.ownerComp.par, self.parName).eval()
 
-		if self.fget is not None:
-			self.fget(self.parName, value)
+		execGetCallback = True
+		if self.parGroup:
+			execGetCallback = self.parGroup.execGetCallback
+
+		if self.fget is not None and execGetCallback:
+			self.fget(value)
 
 		return value
 
 	def __set__(self, obj, value):
 
-		if self.fset is not None:
-			value = self.fset(self.parName, value)
+		execSetCallback = True
+		execPostSetCallback = True
+		if self.parGroup:
+			execSetCallback = self.parGroup.execSetCallback
+			execPostSetCallback = self.parGroup.execPostSetCallback
+		
+
+		if self.fset is not None and execSetCallback:
+			value = self.fset(value)
 		
 		setattr(obj.ownerComp.par, self.parName, value)
 	
-		if self.fpostSet is not None:
-			self.fpostSet(self.parName, value)
+		if self.fpostSet is not None and execPostSetCallback:
+			self.fpostSet(value)
 
 	def __delete__(self, obj):
-		raise AttributeError(	'Unable to delete ParProperty:',
-								self.parName)
+		print(	'ParProperty:', self.parName, 'has been deleted')
+		if self.fdelete is not None:
+			self.fdelete(obj)
 
-def parProperty(inst, parName, parGroup=None, 
-				getter=None, setter=None, postSetter=None):
-
-	setattr(inst.__class__, parName, 
-			ParProperty(parName, parGroup=parGroup,
-						fget=getter, fset=setter, fpostSet=postSetter))
+def parProperty(obj, parName, parGroup=None, 
+				getter=None, setter=None, postSetter=None,
+				deleter=None):
 
 	if parGroup:
-		if not hasattr(inst, parGroup):
-			setattr(inst, parGroup, ParGroup([parName]))
+		if not hasattr(obj, parGroup):
+			setattr(obj, parGroup, ParGroup([parName]))
 
 		else:
-			parGroup = getattr(inst, parGroup)
-			if parName not in parGroup.parNames:
-				parGroup.parNames.append(parName)	
+			parGroupAttr = getattr(obj, parGroup)
+			if parName not in parGroupAttr.parNames:
+				parGroupAttr.parNames.append(parName)	
+
+
+	setattr(obj.__class__, parName, 
+			ParProperty(obj, parName, parGroup=parGroup,
+						fget=getter, fset=setter, fpostSet=postSetter,
+						fdelete=deleter))
+
+def parPropGetter(obj, attr, func):
+	getattr(obj.__class__, attr).fget = func
+
+def parPropSetter(obj, attr, func):
+	getattr(obj.__class__, attr).fset = func
+
+def parPropPostSetter(obj, attr, func):
+	getattr(obj.__class__, attr).fpostSet = func
+
+def parPropDeleter(obj, attr, func):
+	getattr(obj.__class__, attr).fdelete = func
 
 def createParProperties(inst, parNames=None, parGroup=None, 
 						filterPars=[], customPars=True, 
@@ -96,32 +129,31 @@ class ParGroup(object):
 	def __init__(self, parNames=[]):
 
 		self.parNames = parNames
-		self.parExecSet = True
+		self.execCallback = True
+		self._execGetCallback = True
+		self._execSetCallback = True
+		self._execPostSetCallback = True
 
+	@property
+	def execGetCallback(self):
+		return self._execGetCallback and self.execCallback
+
+	@execGetCallback.setter
+	def execGetCallback(self, value):
+		self._execGetCallback = value
 	
+	@property
+	def execSetCallback(self):
+		return self._execSetCallback and self.execCallback
 
+	@execSetCallback.setter
+	def execSetCallback(self, value):
+		self._execSetCallback = value
 
+	@property
+	def execPostSetCallback(self):
+		return self._execPostSetCallback and self.execCallback
 
-def getParCallbacksLookup(inst, parNames=[]):
-
-	parCallbacks = {}
-
-	for parName in parNames:
-		callbackName = parName + '_parCallback'	
-
-		if hasattr(inst, callbackName):
-			parCallbacks[parName] = getattr(inst, callbackName)
-
-	return parCallbacks
-
-
-class IDPars(object):
-
-	def __init__(self, ownerComp, parNames):
-
-		self.ownerComp = ownerComp
-		self.parNames = parNames
-		createParProperties(self, parNames=parNames, printInfo=True)
-
-		self.ParCallbacks = getParCallbacksLookup(
-			self, parNames=parNames)
+	@execPostSetCallback.setter
+	def execSetCallback(self, value):
+		self._execPostSetCallback = value
