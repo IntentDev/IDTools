@@ -1,7 +1,8 @@
 class ParProperty(object):
 
 	def __init__(	self, obj, parName, parGroup=None, fget=None, 
-					fset=None, fpostSet=None, fdelete=None, doc=None):
+					fset=None, fpostSet=None, fdelete=None, 
+					fparCallback=None, doc=None):
 
 		self.obj = obj
 		self.parName = parName
@@ -9,9 +10,11 @@ class ParProperty(object):
 		self.fset = fset
 		self.fpostSet = fpostSet
 		self.fdelete = fdelete
+		self.fparCallback = fparCallback
 
-		if hasattr(obj, parGroup):
-			self.parGroup = getattr(obj, parGroup)
+		if parGroup:
+			if hasattr(obj, parGroup):
+				self.parGroup = getattr(obj, parGroup)
 		else:
 			self.parGroup = None
 
@@ -61,14 +64,16 @@ def parProperty(obj, parName, parGroup=None,
 				getter=None, setter=None, postSetter=None,
 				deleter=None):
 
-	if parGroup:
-		if not hasattr(obj, parGroup):
-			setattr(obj, parGroup, ParGroup([parName]))
+	if not parGroup:
+		parGroup = 'PARS'
 
-		else:
-			parGroupAttr = getattr(obj, parGroup)
-			if parName not in parGroupAttr.parNames:
-				parGroupAttr.parNames.append(parName)	
+	if not hasattr(obj, parGroup):
+		setattr(obj, parGroup, ParGroup([parName]))
+
+	else:
+		parGroupAttr = getattr(obj, parGroup)
+		if parName not in parGroupAttr.parNames:
+			parGroupAttr.parNames.append(parName)	
 
 
 	setattr(obj.__class__, parName, 
@@ -129,14 +134,15 @@ class ParGroup(object):
 	def __init__(self, parNames=[]):
 
 		self.parNames = parNames
-		self.execCallback = True
+		self.execCallbacks = True
 		self._execGetCallback = True
 		self._execSetCallback = True
 		self._execPostSetCallback = True
+		self._execParCallback = True
 
 	@property
 	def execGetCallback(self):
-		return self._execGetCallback and self.execCallback
+		return self._execGetCallback and self.execCallbacks
 
 	@execGetCallback.setter
 	def execGetCallback(self, value):
@@ -144,7 +150,7 @@ class ParGroup(object):
 	
 	@property
 	def execSetCallback(self):
-		return self._execSetCallback and self.execCallback
+		return self._execSetCallback and self.execCallbacks
 
 	@execSetCallback.setter
 	def execSetCallback(self, value):
@@ -152,8 +158,16 @@ class ParGroup(object):
 
 	@property
 	def execPostSetCallback(self):
-		return self._execPostSetCallback and self.execCallback
+		return self._execPostSetCallback and self.execCallbacks
 
 	@execPostSetCallback.setter
 	def execSetCallback(self, value):
 		self._execPostSetCallback = value
+
+	@property
+	def execParCallback(self):
+		return self._execPostSetCallback and self.execCallbacks
+
+	@execParCallback.setter
+	def execSetCallback(self, value):
+		self._execParCallback = value

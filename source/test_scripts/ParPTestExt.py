@@ -10,14 +10,14 @@ class ParPTestExt():
 	def __init__(self, ownerComp):
 		# The component to which this extension is attached
 		self.ownerComp = ownerComp
-
+		self.X = tdu.Dependency(0)
 		# create par propertities for all customPars
 		#IDF.createParProperties(self)
 
-		ParProps.parProperty(self, 'Float', parGroup='TEST1')
+		ParProps.parProperty(self, 'Float')
 		#self.__class__.Float.fset = self.Float_set
-		ParProps.parPropGetter(self, 'Float', self.Float_getter)
-		ParProps.parPropSetter(self, 'Float', self.Float_setter)
+		#ParProps.parPropGetter(self, 'Float', self.Float_getter)
+		#ParProps.parPropSetter(self, 'Float', self.Float_setter)
 		ParProps.parPropPostSetter(self, 'Float', self.Float_postSetter)
 		
 		# ParProps.parProperty(	self, 'Float', parGroup='TEST1',
@@ -26,6 +26,7 @@ class ParPTestExt():
 		# 						postSetter=self.Float_postSetter)
 
 		ParProps.parProperty(self, 'String', parGroup='TEST2')
+		ParProps.parPropDeleter(self, 'String', self.String_deleter)
 		delattr(self, 'String')
 
 		#self.TEST1.parExecSet = False
@@ -78,6 +79,11 @@ class ParPTestExt():
 	def Float_postSetter(self, value):
 		# this function get it's value post setterCallback and post set par
 		# since the par has already been set there is no need to return anything
-		print('Float PostSet callback:\t\tFloat par has been set to:', value)
+		#print('Float PostSet callback:\t\tFloat par has been set to:', value)
+		self.X.val = value
 
+	def String_deleter(self, value):
+		# use deleter callback if some function needs to be called on
+		# attribute delete
+		print('String Delete callback:\t\tString ParProperty has been deleted')
 
