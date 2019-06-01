@@ -80,7 +80,7 @@ class ObjectData:
 							attrName[:2] != '__' and
 							attrName != '__FILTER_GET__' and
 							attrName not in self.__FILTER_GET__ and
-							typeName not in ['ParProperty', 'ParGroup']
+							typeName not in ['ParProperty', 'ParpGroup']
 						)	
 
 			if hasattr(inst, '__FILTER_GET_ATTR__'):

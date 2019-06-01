@@ -13,20 +13,20 @@ class ParPTestExt():
 
 		self.X = tdu.Dependency(0)
 
-		# create par propertities for all customPars (return parGroup)
+		# create par propertities for all customPars (return parpGroup)
 		parg = ParProps.createParProperties(self)
-		for parpName in parg.parNames:
-			print(parpName)
+		# for parpName in parg.parNames:
+		# 	print(parpName)
 
 		# create par property for 'Float' par only and specify functions
-		# self.FloatParp = ParProps.parProperty(self, 'Float', parGroup='PARS',
+		# self.FloatParp = ParProps.parProperty(self, 'Float', parpGroup='PARPS',
 		# 										fGet=self.FloatGetter,
 		# 										fSet=self.FloatSetter,
 		# 										fPostSet=self.FloatPostSetter,
 		# 										fCallback=self.FloatParCallback)
 
 		# create par property for 'Float' par only
-		#self.FloatParp = ParProps.parProperty(self, 'Float')
+		# self.FloatParp = ParProps.parProperty(self, 'Float')
 
 		# set functions for self.FloatParp after it has been created
 		# self.FloatParp.fget = self.FloatGetter
@@ -34,14 +34,14 @@ class ParPTestExt():
 		# self.FloatParp.fpostset = self.FloatPostSetter
 		# self.FloatParp.fcallback = self.FloatParCallback
 				
-		# set functions for self.FloatParp after it has been created via parGroup
-		# default name for parGroup (if not explicity set) is 'PARS'
-		self.PARS.Float.fget = self.FloatGetter
-		self.PARS.Float.fset = self.FloatSetter
-		self.PARS.Float.fpostset = self.FloatPostSetter
-		self.PARS.Float.fcallback = self.FloatParCallback
+		# set functions for self.FloatParp after it has been created via parpGroup
+		# default name for parpGroup (if not explicity set) is 'PARPS'
+		self.PARPS.Float.fget = self.FloatGetter
+		self.PARPS.Float.fset = self.FloatSetter
+		self.PARPS.Float.fpostset = self.FloatPostSetter
+		self.PARPS.Float.fcallback = self.FloatParCallback
 
-		print('self.PARS.Float.par type =', type(self.PARS.Float.par), 'value =', self.PARS.Float.par)
+		print('self.PARPS.Float.par type =', type(self.PARPS.Float.par), 'value =', self.PARPS.Float.par)
 
 		# create par properties for custom and builtin pars
 		# parps = ParProps.createParProperties(self, builtinPars=True)
@@ -58,7 +58,7 @@ class ParPTestExt():
 		# for parp in parps:
 		# 	print(parp.name)
 
-		# delete Parp
+		# delete Parp # note need to delete from parpGroup in parp deleter function
 		# self.StringParp.fdelete = self.String_deleter
 		# delattr(self, 'String')
 
