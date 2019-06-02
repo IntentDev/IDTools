@@ -65,6 +65,9 @@ class ParProperty(object):
 		if self.fParCallback is not None:
 			self.fParCallback(par, prev)
 
+		if self.parpGroup.parCallBackCallsPostSet:
+			self.fPostSet(par)
+
 def parProperty(obj, name, ownerComp=None, parpGroup=None, 
 				fGet=None, fSet=None, fPostSet=None,
 				fDelete=None, fParCallback=None, doc=None):
@@ -133,13 +136,15 @@ def parProperties(	obj, parNames=None, parpGroup=None,
 class ParpGroup(object):
 
 	def __init__(	self, obj, ownerComp, name, parNames=[], 
-					toggleExecParCallback=True):
+					toggleExecParCallback=True, 
+					parCallBackCallsPostSet=True):
 
 		self.obj = obj
 		self.ownerComp = ownerComp
 		self.name = name
 		self.parNames = parNames
 		self.toggleExecParCallback = toggleExecParCallback
+		self.parCallBackCallsPostSet = parCallBackCallsPostSet
 		self.execFuncs = True
 		self._execGet = True
 		self._execSet = True

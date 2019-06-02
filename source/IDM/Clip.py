@@ -35,7 +35,8 @@ class Clip(ObjectData):
 
 		# print('\nPlayParCallback:'.ljust(20), 'Play has been set to:', par)
 
-		self.PlayFunc(par)
+		#self.PlayFunc(par)
+		pass
 
 	def PlaySet(self, value):
 
@@ -47,9 +48,9 @@ class Clip(ObjectData):
 	def PlayFunc(self, value):
 
 		if type(value) == type(self.ownerComp.par.Play):
-			print('\nPlayFunc has been called by PlayParCallback()')
+			print('\nPlayFunc has been called by fParCallback()')
 		else:
-			print('\nPlayFunc has been called by parp.__set__() via fPostSet attribute')
+			print('\nPlayFunc has been called by parp.__set__() via parp.fPostSet attribute')
 
 		#run("args[0].ParpGrp.execParCallback = True", self.ownerComp,
 		#	delayFrames=1)
