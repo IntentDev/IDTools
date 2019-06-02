@@ -1,3 +1,4 @@
+import copy
 class ParProperty(object):
 
 	def __init__(	self, obj, name, ownerComp, parpGroup, fGet=None, 
@@ -45,6 +46,7 @@ class ParProperty(object):
 				self.ownerComp, self.parpGroup.name,
 				delayFrames=1, group=self.parpGroup.name)
 
+		prev = self.par.eval()
 
 		if self.fSet is not None and self.parpGroup.execSet:
 			value = self.fSet(value)
@@ -54,19 +56,22 @@ class ParProperty(object):
 		if self.fPostSet is not None and self.parpGroup.execPostSet:
 			self.fPostSet(value)
 
+		if self.fParCallback is not None and self.parpGroup.setCallParCallback:
+			
+			args = [self.par, prev, 'parpPostSetCall']
+			self.fParCallback(*args)
+
 	def __delete__(self, obj):
 
 		print('\nParProperty:\t\t\t\t', self.name, 'has been deleted')
 		if self.fDelete is not None:
 			self.fDelete(obj)
 
-	def parCallback(self, par, prev):
+	def parCallback(self, par, *args):
 
 		if self.fParCallback is not None:
-			self.fParCallback(par, prev)
+			self.fParCallback(par, *args)
 
-		if self.parpGroup.parCallBackCallsPostSet:
-			self.fPostSet(par)
 
 def parProperty(obj, name, ownerComp=None, parpGroup=None, 
 				fGet=None, fSet=None, fPostSet=None,
@@ -78,7 +83,7 @@ def parProperty(obj, name, ownerComp=None, parpGroup=None,
 		parpGroup = 'ParpGrp'
 
 	if not hasattr(obj, parpGroup):
-		setattr(obj, parpGroup, ParpGroup(obj, ownerComp, parpGroup))
+		setattr(obj, parpGroup, copy.deepcopy(ParpGroup(obj, ownerComp, parpGroup)))
 
 	parpGroup = getattr(obj, parpGroup)
 
@@ -104,7 +109,7 @@ def parProperties(	obj, parNames=None, parpGroup=None,
 		parpGroup = 'ParpGrp'
 
 	if not hasattr(obj, parpGroup):
-		setattr(obj, parpGroup, ParpGroup(obj, ownerComp, parpGroup))
+		setattr(obj, parpGroup, copy.deepcopy(ParpGroup(obj, ownerComp, parpGroup)))
 		
 	if parNames:
 		for name in parNames:
@@ -136,15 +141,15 @@ def parProperties(	obj, parNames=None, parpGroup=None,
 class ParpGroup(object):
 
 	def __init__(	self, obj, ownerComp, name, parNames=[], 
-					toggleExecParCallback=True, 
-					parCallBackCallsPostSet=True):
+					toggleExecParCallback=True,
+					setCallParCallback=True):
 
 		self.obj = obj
 		self.ownerComp = ownerComp
 		self.name = name
 		self.parNames = parNames
 		self.toggleExecParCallback = toggleExecParCallback
-		self.parCallBackCallsPostSet = parCallBackCallsPostSet
+		self.setCallParCallback = setCallParCallback
 		self.execFuncs = True
 		self._execGet = True
 		self._execSet = True

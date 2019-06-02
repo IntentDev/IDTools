@@ -12,16 +12,9 @@ class Clip(ObjectData):
 
 		Parps.parProperties(self)
 
-		# Parps.parProperty(	self, 'Play',
-		# 					fSet=self.PlaySet,
-		# 					fPostSet=self.PlayFunc,
-		# 					fParCallback=self.PlayParCallback)
-
-		Parps.parProperty(	self, 'Play',
-							fPostSet=self.PlayFunc,
-							fParCallback=self.PlayParCallback)
-		
-		# self.ParpGrp.toggleExecParCallback = False
+		self.ParpGrp.Play.fParCallback = self.PlayFunc
+		self.ParpGrp.Cue.fParCallback = self.CueFunc
+		self.ParpGrp.Cuepulse.fParCallback = self.CuepulseFunc
 
 		if self.Callbacksdat:
 			self.clipCallbacks = self.Callbacksdat.module
@@ -30,29 +23,41 @@ class Clip(ObjectData):
 
 		getattr(self.clipCallbacks, 'onStart')(self)
 
+	def PlayFunc(self, par, *args):
+		
+		append = ''
 
-	def PlayParCallback(self, par, prev):
+		if len(args) > 1:
+			append = 'and called from parp.__set__()'
+		else:
+			append = 'and called from parexec_ParCallbacks'
+		print(par.name + 'Func:'.ljust(12), '\tPlay has been set to:', par, append)
 
-		# print('\nPlayParCallback:'.ljust(20), 'Play has been set to:', par)
+	def CueFunc(self, par, *args):
+		
+		append = ''
 
-		#self.PlayFunc(par)
-		pass
+		if len(args) > 1:
+			append = 'and called from parp.__set__()'
+		else:
+			append = 'and called from parexec_ParCallbacks'
+		print(par.name + 'Func:'.ljust(12), '\tCue has been set to:', par, append)	
+
+	def CuepulseFunc(self, par, *args):
+		print(par.name + 'Func:\t'.ljust(9), par.isPulse)
+
+	def PlayGet(self, value):
+
+		print('PlayGet:'.ljust(12), 'Play is:', value)
+		return value
 
 	def PlaySet(self, value):
 
-		print('\nPlaySet:'.ljust(20), 'Play is being set to:', value)
-		#self.ParpGrp.execParCallback = False
-
+		print('PlaySet:'.ljust(12), 'Play is being set to:', value)
 		return value
 
-	def PlayFunc(self, value):
+	def PlayPostSet(self, value):
 
-		if type(value) == type(self.ownerComp.par.Play):
-			print('\nPlayFunc has been called by fParCallback()')
-		else:
-			print('\nPlayFunc has been called by parp.__set__() via parp.fPostSet attribute')
-
-		#run("args[0].ParpGrp.execParCallback = True", self.ownerComp,
-		#	delayFrames=1)
-
+		print('PlayPostSet:'.ljust(12), 'Play has been set to:', value)
+		return value
 

@@ -15,7 +15,7 @@ class ParpTestExt():
 		# return parpGroup
 		# 
 		parg = Parps.parProperties(self)
-		# for parName in parg.parNames:
+		# for parName in self.ParpGrp.parNames:
 		# 	print()
 		# 	print(parName.ljust(9), '\t\t\t\t\t', getattr(self, parName))
 
