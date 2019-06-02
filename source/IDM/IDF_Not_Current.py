@@ -1,4 +1,5 @@
-# need to add readOnly argument and have option of no setter
+# use this for reference only
+# use ParProperties module instead
 
 def createParProperty(inst, name, getterCallback=None, 
 						setterCallback=None, postSetterCallback=None):

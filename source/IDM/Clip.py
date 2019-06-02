@@ -1,7 +1,7 @@
 import ObjectData as OD
 ObjectData = OD.ObjectData
 
-IDF = op.IDM.op('IDF').module
+import ParProperties as Parps
 
 class Clip(ObjectData):
 	def __init__(self, ownerComp):
@@ -10,40 +10,48 @@ class Clip(ObjectData):
 
 		self.__FILTER_GET_ATTR__ = ['clipCallbacks']
 
+		Parps.parProperties(self)
 
-		# create par propertities for all customPars
-		IDF.createParProperties(self, printInfo=True)
-		IDF.createParProperty(self, 'Play',
-									setterCallback=self.Play_set)
+		# Parps.parProperty(	self, 'Play',
+		# 					fSet=self.PlaySet,
+		# 					fPostSet=self.PlayFunc,
+		# 					fParCallback=self.PlayParCallback)
 
-		self.ParCallbacks = IDF.getParCallbacksLookup(self,
-							parNames=['Play', 'Start'])
+		Parps.parProperty(	self, 'Play',
+							fPostSet=self.PlayFunc,
+							fParCallback=self.PlayParCallback)
+		
+		# self.ParpGrp.toggleExecParCallback = False
 
 		if self.Callbacksdat:
 			self.clipCallbacks = self.Callbacksdat.module
 
-
-
-	def Start_parCallback(self, par):
+	def StartParCallback(self, par):
 
 		getattr(self.clipCallbacks, 'onStart')(self)
 
 
-	def Play_parCallback(self, par):
+	def PlayParCallback(self, par, prev):
 
-		self.Play_postSet(par.name, par)
+		# print('\nPlayParCallback:'.ljust(20), 'Play has been set to:', par)
 
-	def Play_set(self, parName, value):
+		self.PlayFunc(par)
 
-		print('\nPlay_set:\n\tPlay is being set to:', value)
+	def PlaySet(self, value):
+
+		print('\nPlaySet:'.ljust(20), 'Play is being set to:', value)
+		#self.ParpGrp.execParCallback = False
 
 		return value
 
-	def Play_postSet(self, parName, value):
+	def PlayFunc(self, value):
 
-		print('\nPlay_postSet:')
 		if type(value) == type(self.ownerComp.par.Play):
-			print('\tPlay_postSet called from Play_parCallback')
+			print('\nPlayFunc has been called by PlayParCallback()')
+		else:
+			print('\nPlayFunc has been called by parp.__set__() via fPostSet attribute')
 
-		print('\tPlay has been set to:', value)
+		#run("args[0].ParpGrp.execParCallback = True", self.ownerComp,
+		#	delayFrames=1)
+
 
