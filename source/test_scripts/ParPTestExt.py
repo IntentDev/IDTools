@@ -1,8 +1,6 @@
 import ParProperties as ParProps
 
-IDF = op('IDF').module
-
-class ParPTestExt():
+class ParpTestExt():
 	"""
 	ParPropertyTest description
 	"""
@@ -13,35 +11,13 @@ class ParPTestExt():
 
 		self.X = tdu.Dependency(0)
 
-		# create par propertities for all customPars (return parpGroup)
+		# create par propertities for all customPars and
+		# return parpGroup
+		# 
 		parg = ParProps.createParProperties(self)
-		# for parpName in parg.parNames:
-		# 	print(parpName)
-
-		# create par property for 'Float' par only and specify functions
-		# self.FloatParp = ParProps.parProperty(self, 'Float', parpGroup='PARPS',
-		# 										fGet=self.FloatGetter,
-		# 										fSet=self.FloatSetter,
-		# 										fPostSet=self.FloatPostSetter,
-		# 										fCallback=self.FloatParCallback)
-
-		# create par property for 'Float' par only
-		# self.FloatParp = ParProps.parProperty(self, 'Float')
-
-		# set functions for self.FloatParp after it has been created
-		# self.FloatParp.fget = self.FloatGetter
-		# self.FloatParp.fset = self.FloatSetter
-		# self.FloatParp.fpostset = self.FloatPostSetter
-		# self.FloatParp.fcallback = self.FloatParCallback
-				
-		# set functions for self.FloatParp after it has been created via parpGroup
-		# default name for parpGroup (if not explicity set) is 'PARPS'
-		self.PARPS.Float.fget = self.FloatGetter
-		self.PARPS.Float.fset = self.FloatSetter
-		self.PARPS.Float.fpostset = self.FloatPostSetter
-		self.PARPS.Float.fcallback = self.FloatParCallback
-
-		print('self.PARPS.Float.par type =', type(self.PARPS.Float.par), 'value =', self.PARPS.Float.par)
+		for parName in parg.parNames:
+			print()
+			print(parName.ljust(9), '\t\t\t\t\t', getattr(self, parName))
 
 		# create par properties for custom and builtin pars
 		# parps = ParProps.createParProperties(self, builtinPars=True)
@@ -58,10 +34,82 @@ class ParPTestExt():
 		# for parp in parps:
 		# 	print(parp.name)
 
-		# delete Parp # note need to delete from parpGroup in parp deleter function
-		# self.StringParp.fdelete = self.String_deleter
-		# delattr(self, 'String')
 
+		# set functions for self.Float parp after it has been
+		# created via the ParpGroup the parp belongs to. 
+		# The default name for a ParpGroup if not explicity 
+		# set in createParProperty() or createParProperties() 
+		# is 'ParpGrp'
+		#
+		# assign function to be called whenever the parp 
+		# returns its value. see self.FloatGetter() below
+		#
+		self.ParpGrp.Float.fget = self.FloatGetter
+
+		# assign function to be called before the parp
+		# set its value. see self.FloatSetter() below	
+		#
+		self.ParpGrp.Float.fset = self.FloatSetter
+
+		# assign function to be called after the parp sets
+		# its value. see self.FloatPostSetter() below
+		#
+		self.ParpGrp.Float.fpostset = self.FloatPostSetter
+
+		# assign function to be called by parexec onValue() or
+		# onPulse(). see self.FloatParCallback() below
+		#
+		self.ParpGrp.Float.fcallback = self.FloatParCallback
+
+		# peek into the par via the parp
+		# 
+		print(	'\nself.ParpGrp.Float.par\t\t', 
+				type(self.ParpGrp.Float.par), 
+				'value =', self.ParpGrp.Float.par.eval())
+
+		# assign function to be called on delete of parp
+		# see self.MomentaryDeleter() below
+		#
+		self.ParpGrp.Momentary.fdelete = self.MomentaryDeleter
+		# delete Parp # todo need to delete from parpGroup in parp deleter function
+		#
+		delattr(self, 'Momentary')
+		
+
+		# create par property for 'Float' par only and 
+		# specify function attributes during creation
+		# 
+		# self.FloatParp = ParProps.parProperty(self, 'Float', parpGroup='ParpGrp',
+		# 										fGet=self.FloatGetter,
+		# 										fSet=self.FloatSetter,
+		# 										fPostSet=self.FloatPostSetter,
+		# 										fCallback=self.FloatParCallback)
+
+		# create 'Float' parp and add FloatParp attribute to self 
+		# Note there is difference between the property (self.Float) 
+		# and the property object (self.FloatParp). self.Float is
+		# the parProperty instance set on the class of the extension
+		# while self.FloatParp is the parProperty instance set on the
+		# class instance that then provides an interface into the
+		# parProperty set on the class. ie. set and get and the 
+		# attributes of the parProperty itself rather than the object
+		# the property is referencing.
+		#
+		# set functions for self.FloatParp after it has been explicitly created
+		# note self.FloatParp == self.ParpGrp.Float
+		#
+		self.FloatParp = ParProps.parProperty(self, 'Float')
+		self.FloatParp.fget = self.FloatGetter
+		self.FloatParp.fset = self.FloatSetter
+		self.FloatParp.fpostset = self.FloatPostSetter
+		self.FloatParp.fcallback = self.FloatParCallback
+		
+		# set and get some parps!
+		# 
+		x = self.Float
+		self.Float = 6	
+		self.String = 'Hello!'
+		self.Menu = 1
 
 	############################################################################
 	# custom ParProperty callbacks
@@ -70,29 +118,29 @@ class ParPTestExt():
 	def FloatGetter(self, value):
 		# value is evaluated from par then passed callback
 		# then returned value from this callback is return by getter
-		print('Float getter:\t\t\tFloat par has the value:', value)
+		print('\nFloatGetter:\t\t\t\t Float par has the value:', value)
 		return value
 
 	def FloatSetter(self, value):
 		# input value is passed to this function, then the returned value
 		# of this callback sets the par.
-		print('Float setter:\t\t\tFloat par is being set to:', value)
+		print('\nFloatSetter:\t\t\t\t Float par is being set to:', value)
 		return value
 
 	def FloatPostSetter(self, value):
 		# this function get it's value post setterCallback and post set par
 		# since the par has already been set there is no need to return anything
-		print('Float postsetter:\t\tFloat par has been set to:', value)
+		print('\nFloatPostSetter:\t\t\t Float par has been set to:', value)
 		self.X.val = value
 
 	def FloatParCallback(self, *args):
 		val = args[0].eval()	
-		print('Float callback:\t\t\tFloat par has been set to:', val)
+		print('\nFloatParCallback:\t\t\t Float par has been set to:', val)
 		self.ownerComp.op('constant1').par.value0 = val
 		self.ownerComp.op('../constant1').par.value1 = val
 
-	def String_deleter(self, value):
+	def MomentaryDeleter(self, value):
 		# use deleter callback if some function needs to be called on
 		# attribute delete
-		print('String deleter:\t\t\tString ParProperty has been deleted')
+		print('\nMomentaryDeleter:\t\t\t Momentary parp has been deleted')
 

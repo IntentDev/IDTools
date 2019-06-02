@@ -43,7 +43,7 @@ class ParProperty(object):
 
 	def __delete__(self, obj):
 
-		print(	'ParProperty:', self.name, 'has been deleted')
+		print('\nParProperty:\t\t\t\t', self.name, 'has been deleted')
 		if self.fdelete is not None:
 			self.fdelete(obj)
 
@@ -54,21 +54,22 @@ class ParProperty(object):
 
 def parProperty(obj, name, ownerComp=None, parpGroup=None, 
 				fGet=None, fSet=None, fPostSet=None,
-				deleter=None, fCallback=None):
+				deleter=None, fCallback=None, doc=None):
 
 	ownerComp = getOwnerComp(obj, ownerComp)
 
 	if not parpGroup:
-		parpGroup = 'PARPS'
+		parpGroup = 'ParpGrp'
 
 	if not hasattr(obj, parpGroup):
-		setattr(obj, parpGroup, ParpGroup(obj, ownerComp))
+		setattr(obj, parpGroup, ParpGroup(obj, ownerComp, parpGroup))
 
 	parpGroup = getattr(obj, parpGroup)
 
 	parp = ParProperty(	obj, name, ownerComp, parpGroup,
 						fget=fGet, fset=fSet, fpostset=fPostSet,
-						fdelete=deleter)
+						fdelete=deleter, fcallback=fCallback,
+						doc=doc)
 
 	setattr(obj.__class__, name, parp)
 	parp = getattr(obj.__class__, name)
@@ -84,10 +85,10 @@ def createParProperties(obj, parNames=None, parpGroup=None,
 	ownerComp = getOwnerComp(obj, ownerComp)
 
 	if not parpGroup:
-		parpGroup = 'PARPS'
+		parpGroup = 'ParpGrp'
 
 	if not hasattr(obj, parpGroup):
-		setattr(obj, parpGroup, ParpGroup(obj, ownerComp))
+		setattr(obj, parpGroup, ParpGroup(obj, ownerComp, parpGroup))
 		
 	if parNames:
 		for name in parNames:
@@ -118,9 +119,11 @@ def createParProperties(obj, parNames=None, parpGroup=None,
 
 class ParpGroup(object):
 
-	def __init__(self, obj, ownerComp, parNames=[]):
+	def __init__(self, obj, ownerComp, name,parNames=[]):
 
+		self.obj = obj
 		self.ownerComp = ownerComp
+		self.name = name
 		self.parNames = parNames
 		self.execCallbacks = True
 		self._execGetCallback = True
