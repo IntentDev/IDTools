@@ -1,5 +1,5 @@
 import pickle
-import ParProperties as Parps
+Parps = op.IDM.op('ParProperties').module
 
 class RemoteExt:
 

@@ -1,7 +1,5 @@
-import ObjectData as OD
-ObjectData = OD.ObjectData
-
-import ParProperties as Parps
+ObjectData = op.IDM.op('ObjectData').module.ObjectData
+Parps = op.IDM.op('ParProperties').module
 
 class Clip(ObjectData):
 	def __init__(self, ownerComp):
