@@ -9,6 +9,7 @@ class ParProperty(object):
 		self.name = name
 		self.ownerComp = ownerComp
 		self.par = getattr(self.ownerComp.par, self.name)
+		self.notPulse = not self.par.isPulse
 		self.parpGroup = parpGroup
 		self.fGet = fGet
 		self.fSet = fSet
@@ -46,7 +47,8 @@ class ParProperty(object):
 				self.ownerComp, self.parpGroup.name,
 				delayFrames=1, group=self.parpGroup.name)
 
-		prev = self.par.eval()
+		if self.notPulse:
+			prev = self.par.eval()
 
 		if self.fSet is not None and self.parpGroup.execSet:
 			value = self.fSet(value)
@@ -57,8 +59,11 @@ class ParProperty(object):
 			self.fPostSet(value)
 
 		if self.fParCallback is not None and self.parpGroup.setCallParCallback:
-			
-			args = [self.par, prev, 'parpPostSetCall']
+			if self.notPulse:
+				args = [self.par, self.ownerComp, prev]
+			else:
+				args = [self.par, self.ownerComp]
+				
 			self.fParCallback(*args)
 
 	def __delete__(self, obj):

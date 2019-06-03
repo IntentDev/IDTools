@@ -23,28 +23,23 @@ class Clip(ObjectData):
 
 		getattr(self.clipCallbacks, 'onStart')(self)
 
-	def PlayFunc(self, par, *args):
-		
-		append = ''
+	def PlayFunc(self, par, caller, prev):
+		print(	par.name + 'Func:'.ljust(12), 
+				'\t{} has been set to:'.format(par.name), 
+				par, 'and called from', caller)
 
-		if len(args) > 1:
-			append = 'and called from parp.__set__()'
-		else:
-			append = 'and called from parexec_ParCallbacks'
-		print(par.name + 'Func:'.ljust(12), '\tPlay has been set to:', par, append)
+	def CueFunc(self, *args):
+		par = args[0]
+		caller = args[1]
+		print(	par.name + 'Func:'.ljust(12), 
+				'\t{} has been set to:'.format(par.name), 
+				par, 'and called from', caller)
+	
 
-	def CueFunc(self, par, *args):
-		
-		append = ''
-
-		if len(args) > 1:
-			append = 'and called from parp.__set__()'
-		else:
-			append = 'and called from parexec_ParCallbacks'
-		print(par.name + 'Func:'.ljust(12), '\tCue has been set to:', par, append)	
-
-	def CuepulseFunc(self, par, *args):
-		print(par.name + 'Func:\t'.ljust(9), par.isPulse)
+	def CuepulseFunc(self, par, caller):
+		print(	par.name + 'Func:'.ljust(8), 
+				'\t{} has been set to:'.format(par.name), 
+				par, 'and called from', caller)
 
 	def PlayGet(self, value):
 

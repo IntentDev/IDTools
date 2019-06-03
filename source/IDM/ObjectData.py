@@ -148,8 +148,11 @@ class ObjectData:
 
 							else:
 								# get property or ParProperty
-								attrSet = attrVal.fSet != None
-								
+								if hasattr(attrVal, 'fset'):
+									attrSet = attrVal.fset != None
+								else:
+									attrSet = attrVal.fSet != None
+															
 								if not self.isSerializable(attrVal.__get__(inst)):
 									try:
 										attrVal = self.serialize(getattr(inst, attrName), 
