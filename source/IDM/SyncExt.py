@@ -10,7 +10,7 @@ class SyncExt:
 		self.switchSync = ownerComp.op('switchSync')
 		self.syncSources = ownerComp.op('syncSources')
 
-		Parps.parProperties(self)
+		Parps.parProperties(self, parCallbacksDAT=self.ownerComp.op('ParCallbacks'))
 
 	def Mode(self, mode):
 

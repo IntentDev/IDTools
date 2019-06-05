@@ -435,7 +435,7 @@ class ObjectData:
 				outputList.append(attr)
 
 			else:				
-				print('not attrDict:', inputList)
+				outputList.append(inputVal)
 			
 		if inputList['_attr_type'] == 'tuple':
 			outputList = tuple(outputList)
@@ -463,10 +463,16 @@ class ObjectData:
 			return attrVal['_attr_val']
 
 		elif isinstance(attrVal['_attr_val'], dict):
-			return self.makeNotBasicType(attrVal['_attr_val'])
+			if self.isAttrDict(attrVal['_attr_val']):
+				return self.makeNotBasicType(attrVal['_attr_val'])
+			else:
+				return attrVal['_attr_val']
 
 		elif isinstance(attrVal['_attr_val'], (list, tuple)):
-			return self.makeList(attrVal['_attr_val'])
+			if self.isAttrDict(attrVal['_attr_val']):
+				return self.makeList(attrVal['_attr_val'])
+			else:
+				return attrVal['_attr_val']
 
 		return  '__noSet__'
 

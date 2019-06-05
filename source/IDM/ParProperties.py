@@ -174,20 +174,16 @@ class ParpGroup:
 		
 		if parCallbacksDAT:
 			self.parCallbacksDAT = parCallbacksDAT
-			# parCallbacks = setattr(
-			# 			self.obj, self.name + 'Callbacks', 
-			# 			self.parCallbacksDAT.module)
 
 			parCallbacks = self.parCallbacksDAT.module
 			print(parCallbacks)
 			for parName in self.parNames:
-				print(parName)
+
 				parp = getattr(self, parName)
 				if parp.fParCallback is None:
 					if hasattr(parCallbacks, parName):
 						parCallback = getattr(parCallbacks, parName)
 						parp.fParCallback = parCallback
-						print(parName)
 
 	def appendParp(self, name, parp):
 

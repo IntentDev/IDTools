@@ -9,21 +9,13 @@ class RemoteExt:
 		self.tcpip = ownerComp.op('tcpip')
 		self.sync = ownerComp.op('sync')
 
-		Parps.parProperties(self)
-		self.ParpGrp.Ismaster.fParCallback = self.IsmasterParCall
-		self.ParpGrp.Syncmode.fParCallback = self.SyncmodeParCall
+		Parps.parProperties(self, parCallbacksDAT=self.ownerComp.op('ParCallbacks'))
 
 		self.remoteFuncs = [self.setAttr, self.setPar, self.getAttr]
 		self.connectionModes = ['client', 'server']
 
 		self._callID = -1
 		self._callList = []
-
-	def IsmasterParCall(self, par, *args):
-		self.ConnectionMode = self.connectionModes[int(par)]
-
-	def SyncmodeParCall(self, par, *args):
-		self.sync.Mode(par.eval())
 
 	# Call to Call function, set attribute or set parameter on remote component
 	##########################################
