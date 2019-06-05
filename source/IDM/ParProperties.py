@@ -1,5 +1,5 @@
 import copy
-class ParProperty(object):
+class ParProperty:
 
 	def __init__(	self, obj, name, ownerComp, parpGroup, fGet=None, 
 					fSet=None, fPostSet=None, fDelete=None, 
@@ -80,7 +80,8 @@ class ParProperty(object):
 
 def parProperty(obj, name, ownerComp=None, parpGroup=None, 
 				fGet=None, fSet=None, fPostSet=None,
-				fDelete=None, fParCallback=None, doc=None):
+				fDelete=None, fParCallback=None, doc=None,
+				parCallbacksDAT=None):
 
 	ownerComp = getOwnerComp(obj, ownerComp)
 
@@ -88,25 +89,27 @@ def parProperty(obj, name, ownerComp=None, parpGroup=None,
 		parpGroup = 'ParpGrp'
 
 	if not hasattr(obj, parpGroup):
-		setattr(obj, parpGroup, copy.deepcopy(ParpGroup(obj, ownerComp, parpGroup)))
+		setattr(obj, parpGroup, 
+				copy.deepcopy(ParpGroup(obj, ownerComp, parpGroup)))
 
-	parpGroup = getattr(obj, parpGroup)
+	parg = getattr(obj, parpGroup)
 
-	parp = ParProperty(	obj, name, ownerComp, parpGroup,
+	parp = ParProperty(	obj, name, ownerComp, parg,
 						fGet=fGet, fSet=fSet, fPostSet=fPostSet,
 						fDelete=fDelete, fParCallback=fParCallback,
 						doc=doc)
 
 	setattr(obj.__class__, name, parp)
 	parp = getattr(obj.__class__, name)
-	parpGroup.appendParp(name, parp)
-
+	parg.appendParp(name, parp)
+	if parCallbacksDAT:
+		parg.getParCallbacks(parCallbacksDAT)
 	return parp
 
 
 def parProperties(	obj, parNames=None, parpGroup=None, 
 					ownerComp=None, filterPars=[], customPars=True, 
-					builtinPars=False):
+					builtinPars=False, parCallbacksDAT=None):
 
 	ownerComp = getOwnerComp(obj, ownerComp)
 
@@ -114,7 +117,8 @@ def parProperties(	obj, parNames=None, parpGroup=None,
 		parpGroup = 'ParpGrp'
 
 	if not hasattr(obj, parpGroup):
-		setattr(obj, parpGroup, copy.deepcopy(ParpGroup(obj, ownerComp, parpGroup)))
+		setattr(obj, parpGroup, 
+				copy.deepcopy(ParpGroup(obj, ownerComp, parpGroup)))
 		
 	if parNames:
 		for name in parNames:
@@ -139,11 +143,13 @@ def parProperties(	obj, parNames=None, parpGroup=None,
 				parp = parProperty(
 							obj, par.name, ownerComp, parpGroup)
 
-	parg = getattr(obj, parpGroup)					
+	parg = getattr(obj, parpGroup)	
+	if parCallbacksDAT:
+		parg.getParCallbacks(parCallbacksDAT)				
 
 	return parg
 
-class ParpGroup(object):
+class ParpGroup:
 
 	def __init__(	self, obj, ownerComp, name, parNames=[], 
 					toggleExecParCallback=True,
@@ -153,6 +159,7 @@ class ParpGroup(object):
 		self.ownerComp = ownerComp
 		self.name = name
 		self.parNames = parNames
+		self.parCallbacksDAT = None
 		self.toggleExecParCallback = toggleExecParCallback
 		self.setCallParCallback = setCallParCallback
 		self.execFuncs = True
@@ -161,12 +168,36 @@ class ParpGroup(object):
 		self._execPostSet = True
 		self._execParCallback = tdu.Dependency(True)
 
+		#self.getParCallbacks()
+
+	def getParCallbacks(self, parCallbacksDAT):
+		
+		if parCallbacksDAT:
+			self.parCallbacksDAT = parCallbacksDAT
+			# parCallbacks = setattr(
+			# 			self.obj, self.name + 'Callbacks', 
+			# 			self.parCallbacksDAT.module)
+
+			parCallbacks = self.parCallbacksDAT.module
+			print(parCallbacks)
+			for parName in self.parNames:
+				print(parName)
+				parp = getattr(self, parName)
+				if parp.fParCallback is None:
+					if hasattr(parCallbacks, parName):
+						parCallback = getattr(parCallbacks, parName)
+						parp.fParCallback = parCallback
+						print(parName)
+
 	def appendParp(self, name, parp):
 
 		setattr(self, name, parp)
 
 		if name not in self.parNames:
 			self.parNames.append(name)
+
+			#self.getParCallbacks()
+
 
 	@property
 	def execGet(self):

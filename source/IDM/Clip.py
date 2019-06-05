@@ -8,11 +8,12 @@ class Clip(ObjectData):
 
 		self.__FILTER_GET_ATTR__ = ['clipCallbacks']
 
-		Parps.parProperties(self)
+		# Parps.parProperties(self)
+		# self.ParpGrp.Play.fParCallback = self.PlayFunc
+		# self.ParpGrp.Cue.fParCallback = self.CueFunc
+		# self.ParpGrp.Cuepulse.fParCallback = self.CuepulseFunc
 
-		self.ParpGrp.Play.fParCallback = self.PlayFunc
-		self.ParpGrp.Cue.fParCallback = self.CueFunc
-		self.ParpGrp.Cuepulse.fParCallback = self.CuepulseFunc
+		Parps.parProperties(self, parCallbacksDAT=self.ownerComp.op('ParCallbacks'))
 
 		if self.Callbacksdat:
 			self.clipCallbacks = self.Callbacksdat.module
