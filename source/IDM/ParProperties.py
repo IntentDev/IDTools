@@ -60,9 +60,9 @@ class ParProperty:
 
 		if self.fParCallback is not None and self.parpGroup.setCallParCallback:
 			if self.notPulse:
-				args = [self.par, self.ownerComp, prev]
+				args = [self.obj, self.par, self.ownerComp, prev]
 			else:
-				args = [self.par, self.ownerComp]
+				args = [self.obj, self.par, self.ownerComp]
 				
 			self.fParCallback(*args)
 
@@ -75,7 +75,7 @@ class ParProperty:
 	def parCallback(self, par, *args):
 
 		if self.fParCallback is not None:
-			self.fParCallback(par, *args)
+			self.fParCallback(self.obj, par, *args)
 
 
 def parProperty(obj, name, ownerComp=None, parpGroup=None, 
@@ -167,8 +167,6 @@ class ParpGroup:
 		self._execSet = True
 		self._execPostSet = True
 		self._execParCallback = tdu.Dependency(True)
-
-		#self.getParCallbacks()
 
 	def getParCallbacks(self, parCallbacksDAT):
 		

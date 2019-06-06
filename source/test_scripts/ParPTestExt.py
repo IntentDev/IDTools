@@ -135,14 +135,20 @@ class ParpTestExt():
 		print('\nFloatPostSetter:\t\t\t Float par has been set to:', value)
 		self.X.val = value
 
-	def FloatParCallback(self, *args):
-		val = args[0].eval()	
-		print('\nFloatParCallback:\t\t\t Float par has been set to:', val)
-		self.ownerComp.op('constant1').par.value0 = val
-		self.ownerComp.op('../constant1').par.value1 = val
-
 	def MomentaryDeleter(self, value):
 		# use deleter callback if some function needs to be called on
 		# attribute delete
 		print('\nMomentaryDeleter:\t\t\t Momentary parp has been deleted')
 
+	# need to use staticmethod for ParCallback in extension since the
+	# extension object is being passed by the Parp. If it is not a staticmethod
+	# then the class instance will be also passed to the extension object in addition 
+	# to the Parp arguments - self will be passed twice.
+	# the preferred method of using ParCallbacks is to use a parCallbacksDAT
+	# this can be removed by not passing obj to parCallback... 
+	@staticmethod
+	def FloatParCallback(obj, par, *args):
+		val = par.eval()	
+		print('\nFloatParCallback:\t\t\t Float par has been set to:', val)
+		obj.ownerComp.op('constant1').par.value0 = val
+		obj.ownerComp.op('../constant1').par.value1 = val
