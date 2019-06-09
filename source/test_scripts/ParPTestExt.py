@@ -12,7 +12,7 @@ class ParpTestExt():
 		self.X = tdu.Dependency(0)
 
 		# create par propertities for all customPars and
-		# return parpGroup
+		# return parpGroup 
 		# 
 		parg = Parps.parProperties(self)
 		# for parName in self.ParpGrp.parNames:
