@@ -1,5 +1,15 @@
 ObjectData = op('IDC').module.ObjectData
 
+class Position:
+
+	def __init__(self):
+	
+		self.x = 0.0
+		self.y = 0.0
+		self.z = 0.0
+		
+
+
 class ExtDataTestExt(ObjectData):
 	"""
 	ExtDataTestExt description
@@ -23,6 +33,11 @@ class ExtDataTestExt(ObjectData):
 		self.B = 0
 		self.C = 1
 		self.D = 2
+		
+		self.Pos = Position()
+		self.Pos.x = 1
+		self.Pos.y = 2
+		self.Pos.z = 3
 
 		self.TestFunctionAttr = self.testFunc
 		self.TestFunctionDict = {'test_func': self.testFunc}

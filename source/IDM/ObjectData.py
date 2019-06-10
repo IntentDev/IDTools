@@ -67,14 +67,16 @@ class ObjectData:
 		if not inst:
 			inst = self
 
-		# try:
+		if hasattr(self, '__FILTER_SET_ATTR__'):
+			self.__FILTER_SET__ += tuple(self.__FILTER_SET_ATTR__)
+
 
 		# get instance attributes
 		attrDict = {}
 		for attrName, attrVal in inst.__dict__.items():			
 			type_ = type(attrVal)
 			typeName = type_.__name__	
-			attrSet = True
+			attrSet = attrName not in self.__FILTER_SET__
 
 			createKey = (	attrName[:13] != '_ObjectData__' and	
 							attrName[:2] != '__' and
@@ -149,9 +151,11 @@ class ObjectData:
 							else:
 								# get property or ParProperty
 								if hasattr(attrVal, 'fset'):
-									attrSet = attrVal.fset != None
+									attrSet = (	attrVal.fset != None 
+												and attrName not in self.__FILTER_SET__)
 								else:
-									attrSet = attrVal.fSet != None
+									attrSet = (	attrVal.fSet != None
+												and attrName not in self.__FILTER_SET__)
 															
 								if not self.isSerializable(attrVal.__get__(inst)):
 									try:

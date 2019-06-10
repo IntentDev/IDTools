@@ -1,6 +1,7 @@
 import copy
 class ParProperty:
-
+	# todo: - setup per parp execute getter, setter, postSetter and parCallback
+	#		- setup filtering handling of par expressions, exports and bindings
 	def __init__(	self, obj, name, ownerComp, parpGroup, fGet=None, 
 					fSet=None, fPostSet=None, fDelete=None, 
 					fParCallback=None, doc=None):
