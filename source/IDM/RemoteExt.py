@@ -9,7 +9,7 @@ class RemoteExt:
 		self.sync = ownerComp.op('sync')
 
 		Parps.parProperties(self, parCallbacksDAT=self.ownerComp.op('ParCallbacks'))
-		self.remoteFuncs = [self.setAttr, self.setPar, self.getAttr, self.execFunc]
+		self.remoteFuncs = [self.setAttr, self.setPar, self.getAttr, self.execCode]
 		self.connectionModes = ['client', 'server']
 
 	# Call to Call function, set attribute or set parameter on remote component
@@ -26,7 +26,7 @@ class RemoteExt:
 		data = pickle.dumps([2, comp.path, attribute, args, kwargs])
 		self.tcpip.sendBytes(data)
 
-	def ExecFunc(self, func, *args, **kwargs):	
+	def ExecCode(self, func, *args, **kwargs):	
 		data = pickle.dumps([3, func, args, kwargs])
 		self.tcpip.sendBytes(data)
 
@@ -56,12 +56,11 @@ class RemoteExt:
 		kwargs = data[3]
 		getattr(comp, attribute)(*args, **kwargs)
 
-	def execFunc(self, data):
-		func = data[0]
+	def execCode(self, data):
+		code = data[0]
 		args = data[1]
 		kwargs = data[2]
-		print(func)
-		exec(func)
+		exec(code)
 
 	@property
 	def ConnectionMode(self):
